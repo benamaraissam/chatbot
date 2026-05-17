@@ -26,7 +26,7 @@ class MultiToolProvider(BaseProvider):
         tools_schema: list[dict[str, Any]] | None = None,
         model: str | None = None,
     ) -> AsyncIterator[ProviderStreamChunk]:
-        if any("Tool get_weather result" in m.content for m in messages):
+        if any(m.role == "tool" for m in messages):
             yield ProviderStreamChunk(text_delta="All done.")
             yield ProviderStreamChunk(
                 finish_reason="stop",

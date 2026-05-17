@@ -11,6 +11,7 @@ from typing import Any
 import httpx
 
 from chatbot.providers.base import BaseProvider, ProviderConfig, ProviderMessage, ProviderStreamChunk
+from chatbot.providers.openai_messages import provider_message_to_openai, should_include_stream_usage
 from chatbot.providers.urls import resolve_openai_chat_completions_url
 
 DEFAULT_OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
@@ -66,24 +67,31 @@ class OpenAIProvider(BaseProvider):
         openai_messages: list[dict[str, Any]] = []
         if system_prompt:
             openai_messages.append({"role": "system", "content": system_prompt})
-        openai_messages.extend({"role": m.role, "content": m.content} for m in messages)
+        openai_messages.extend(provider_message_to_openai(m) for m in messages)
 
+        url = self.chat_completions_url()
         body: dict[str, Any] = {
             "model": self.effective_model(model),
             "messages": openai_messages,
             "stream": True,
-            "stream_options": {"include_usage": True},
         }
+        if should_include_stream_usage(url):
+            body["stream_options"] = {"include_usage": True}
         if tools_schema:
             body["tools"] = [{"type": "function", "function": t} for t in tools_schema]
 
         headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-        url = self.chat_completions_url()
         state = _OpenAIStreamState()
 
         async with httpx.AsyncClient(timeout=120.0) as client:
             async with client.stream("POST", url, json=body, headers=headers) as response:
-                response.raise_for_status()
+                if response.is_error:
+                    detail = (await response.aread()).decode("utf-8", errors="replace").strip()
+                    raise httpx.HTTPStatusError(
+                        _format_openai_http_error(response.status_code, url, detail),
+                        request=response.request,
+                        response=response,
+                    )
                 async for line in response.aiter_lines():
                     if not line.startswith("data:"):
                         continue
@@ -96,6 +104,18 @@ class OpenAIProvider(BaseProvider):
                         continue
                     for chunk in _parse_openai_payload(payload, state):
                         yield chunk
+
+
+def _format_openai_http_error(status_code: int, url: str, detail: str) -> str:
+    hint = ""
+    if status_code == 400 and "stream_options" in detail:
+        hint = " Try OPENAI_STREAM_USAGE=0 in .env."
+    elif status_code == 400:
+        hint = " Check model name, message format, and tool payloads."
+    base = f"LLM API returned HTTP {status_code} for {url}"
+    if detail:
+        return f"{base}: {detail[:1500]}{hint}"
+    return f"{base} (empty response body).{hint}"
 
 
 def _smooth_text_chunks(text: str, *, thinking: bool = False) -> Iterator[ProviderStreamChunk]:

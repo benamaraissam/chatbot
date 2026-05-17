@@ -52,15 +52,25 @@ export function fileExtension(name: string): string {
   return i >= 0 ? name.slice(i).toLowerCase() : "";
 }
 
+export function normalizeMimeType(mime: string): string {
+  return mime.split(";")[0]?.trim().toLowerCase() || "";
+}
+
 export function inferImageMimeType(file: File): string {
-  if (file.type.startsWith("image/")) return file.type;
+  const base = normalizeMimeType(file.type);
+  if (base.startsWith("image/")) return base;
   const ext = fileExtension(file.name);
   return EXT_TO_MIME[ext] ?? "image/jpeg";
 }
 
 export function isImageFile(file: File): boolean {
-  if (file.type.startsWith("image/")) return true;
-  return IMAGE_EXTENSIONS.has(fileExtension(file.name));
+  const base = normalizeMimeType(file.type);
+  if (base.startsWith("text/")) return false;
+  if (base.startsWith("image/")) return true;
+  const ext = fileExtension(file.name);
+  if (!IMAGE_EXTENSIONS.has(ext)) return false;
+  // Trust extension only when the browser did not label the file as plain text.
+  return !base || base === "application/octet-stream";
 }
 
 function readFileAsBase64(file: File): Promise<string> {

@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 
 class MockScenario(str, Enum):
@@ -24,13 +25,22 @@ class ScenarioMatch:
     tool_round: int = 0
 
 
-def count_tool_rounds(messages_content: list[str]) -> int:
-    """Count completed tool rounds (success or error) in agent message history."""
-    return sum(
-        1
-        for c in messages_content
-        if c.startswith("Tool ") and (" result:" in c or " error:" in c)
-    )
+def count_tool_rounds(messages: list[Any]) -> int:
+    """Count completed tool results in agent message history."""
+    role_based = sum(1 for m in messages if getattr(m, "role", None) == "tool")
+    if role_based:
+        return role_based
+    # Legacy plain-text summaries (pre–OpenAI tool messages)
+    legacy = 0
+    for m in messages:
+        content = getattr(m, "content", m if isinstance(m, str) else "")
+        if (
+            isinstance(content, str)
+            and content.startswith("Tool ")
+            and (" result:" in content or " error:" in content)
+        ):
+            legacy += 1
+    return legacy
 
 
 def match_scenario(last_user: str, tool_round: int) -> ScenarioMatch:

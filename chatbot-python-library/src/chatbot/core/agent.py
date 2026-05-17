@@ -81,30 +81,40 @@ class AgentLoop:
         messages: list[ProviderMessage],
         *,
         text_buffer: str,
+        thinking_buffer: str,
         executed: list[_ExecutedTool],
     ) -> None:
-        names = ", ".join(item.tool.name for item in executed)
+        tool_calls = [
+            {
+                "id": item.tool.id,
+                "type": "function",
+                "function": {
+                    "name": item.tool.name,
+                    "arguments": json.dumps(item.tool.input, ensure_ascii=False),
+                },
+            }
+            for item in executed
+        ]
         messages.append(
             ProviderMessage(
                 role="assistant",
-                content=text_buffer or f"Called {names}",
+                content=text_buffer or None,
+                tool_calls=tool_calls,
+                reasoning_content=thinking_buffer,
             )
         )
         for item in executed:
             if item.is_error:
-                messages.append(
-                    ProviderMessage(
-                        role="user",
-                        content=f"Tool {item.tool.name} error: {item.output}",
-                    )
-                )
+                payload = {"error": str(item.output)}
             else:
-                messages.append(
-                    ProviderMessage(
-                        role="user",
-                        content=f"Tool {item.tool.name} result: {json.dumps(item.output, default=str)}",
-                    )
+                payload = item.output
+            messages.append(
+                ProviderMessage(
+                    role="tool",
+                    tool_call_id=item.tool.id,
+                    content=json.dumps(payload, default=str, ensure_ascii=False),
                 )
+            )
 
     async def run(
         self,
@@ -124,6 +134,7 @@ class AgentLoop:
         for _round in range(self.max_tool_rounds):
             tools_schema = self._tools_schema()
             text_buffer = ""
+            thinking_buffer = ""
             pending_tools: dict[str, _PendingTool] = {}
             tool_order: list[str] = []
             finish_reason: str | None = None
@@ -136,6 +147,7 @@ class AgentLoop:
                 model=model,
             ):
                 if chunk.thinking_delta:
+                    thinking_buffer += chunk.thinking_delta
                     yield ThinkingDelta(delta=chunk.thinking_delta)
 
                 if chunk.text_delta:
@@ -199,8 +211,14 @@ class AgentLoop:
                         is_error=True,
                     )
                     executed.append(_ExecutedTool(tool=tool, output=str(exc), is_error=True))
-                    self._append_tool_turn(current_messages, text_buffer=text_buffer, executed=executed)
+                    self._append_tool_turn(
+                        current_messages,
+                        text_buffer=text_buffer,
+                        thinking_buffer=thinking_buffer,
+                        executed=executed,
+                    )
                     text_buffer = ""
+                    thinking_buffer = ""
                     break
 
                 if isinstance(result, ToolApprovalRequired):
@@ -223,8 +241,14 @@ class AgentLoop:
                 executed.append(_ExecutedTool(tool=tool, output=result, is_error=False))
 
             if executed:
-                self._append_tool_turn(current_messages, text_buffer=text_buffer, executed=executed)
+                self._append_tool_turn(
+                    current_messages,
+                    text_buffer=text_buffer,
+                    thinking_buffer=thinking_buffer,
+                    executed=executed,
+                )
                 text_buffer = ""
+                thinking_buffer = ""
 
         yield ErrorEvent(code="max_tool_rounds", message="Maximum tool execution rounds reached")
         yield MessageEnd(finish_reason="max_tool_rounds")

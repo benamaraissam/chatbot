@@ -290,7 +290,7 @@ class MockProvider(BaseProvider):
             (provider_content_to_text(m.content) for m in reversed(messages) if m.role == "user"),
             "",
         )
-        tool_round = count_tool_rounds(contents)
+        tool_round = count_tool_rounds(messages)
 
         # After tool execution the agent appends synthetic user messages — keep scenario from first user ask
         first_user = next(
