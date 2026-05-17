@@ -1,0 +1,23 @@
+host: "0.0.0.0"
+port: 8000
+default_provider: mock
+system_prompt: "You are a helpful assistant."
+storage: "sqlite:///./chatbot.db"
+cors_origins:
+  - "*"
+providers:
+  mock:
+    model: mock
+  claude:
+    model: claude-sonnet-4-20250514
+    api_key_env: ANTHROPIC_API_KEY
+  gpt:
+    model: gpt-4o
+    api_key_env: OPENAI_API_KEY
+    # base_url: https://api.openai.com/v1          # racine API (→ /v1/chat/completions)
+    # base_url_env: OPENAI_BASE_URL
+  # Gateway OpenAI-compatible (Ollama, vLLM, Azure, etc.)
+  local:
+    model: llama3.2
+    base_url: http://localhost:11434/v1
+    api_key_env: OPENAI_API_KEY

@@ -1,0 +1,141 @@
+/* Design tokens — light & dark via data-cb-theme on .cb-root */
+
+.cb-root[data-cb-theme="dark"] {
+  color-scheme: dark;
+
+  --cb-bg: #0f0f10;
+  --cb-bg-elevated: #18181b;
+  --cb-surface: #18181b;
+  --cb-surface-hover: #27272a;
+  --cb-header-bg: #141416;
+  --cb-border: rgba(255, 255, 255, 0.1);
+  --cb-border-strong: rgba(255, 255, 255, 0.18);
+
+  --cb-text: #fafafa;
+  --cb-text-secondary: #d4d4d8;
+  --cb-muted: #a1a1aa;
+  --cb-icon: #e4e4e7;
+  --cb-icon-muted: #a1a1aa;
+
+  --cb-primary: #14b8a6;
+  --cb-primary-hover: #2dd4bf;
+  --cb-primary-fg: #ffffff;
+  --cb-primary-muted: rgba(20, 184, 166, 0.15);
+  --cb-primary-glow: rgba(20, 184, 166, 0.4);
+
+  --cb-user-bubble: #0f766e;
+  --cb-user-bubble-hover: #115e59;
+  --cb-user-text: #ffffff;
+  --cb-assistant-bubble: transparent;
+  --cb-assistant-border: transparent;
+
+  --cb-input-bg: #27272a;
+  --cb-composer-bg: #1f1f23;
+  --cb-btn-ghost-bg: #27272a;
+  --cb-btn-ghost-border: rgba(255, 255, 255, 0.12);
+  --cb-btn-ghost-hover: #3f3f46;
+  --cb-hover: rgba(255, 255, 255, 0.08);
+  --cb-active: rgba(255, 255, 255, 0.12);
+
+  --cb-error-bg: rgba(239, 68, 68, 0.15);
+  --cb-error-border: rgba(248, 113, 113, 0.4);
+  --cb-error-text: #fca5a5;
+
+  --cb-tool-bg: #1c1c1f;
+  --cb-tool-bg-expanded: #232326;
+  --cb-tool-border: rgba(255, 255, 255, 0.1);
+  --cb-tool-code-bg: #141416;
+  --cb-tool-running-accent: #14b8a6;
+  --cb-tool-success-accent: #34d399;
+  --cb-tool-warning-accent: #fbbf24;
+  --cb-tool-error-accent: #f87171;
+  --cb-tool-pill-running-bg: rgba(20, 184, 166, 0.18);
+  --cb-tool-pill-success-bg: rgba(52, 211, 153, 0.15);
+  --cb-tool-pill-warning-bg: rgba(251, 191, 36, 0.15);
+  --cb-tool-pill-error-bg: rgba(248, 113, 113, 0.15);
+
+  --cb-thinking-bg: rgba(20, 184, 166, 0.08);
+  --cb-thinking-border: rgba(20, 184, 166, 0.22);
+  --cb-thinking-text: #5eead4;
+  --cb-thinking-label: #2dd4bf;
+
+  --cb-response-bg: rgba(255, 255, 255, 0.04);
+  --cb-response-border: rgba(255, 255, 255, 0.12);
+  --cb-response-text: #a1a1aa;
+  --cb-response-label: #d4d4d8;
+
+  --cb-shadow-panel: 0 25px 50px -12px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+  --cb-shadow-fab: 0 10px 40px -8px var(--cb-primary-glow), 0 8px 16px rgba(0, 0, 0, 0.5);
+  --cb-backdrop: rgba(0, 0, 0, 0.6);
+}
+
+.cb-root[data-cb-theme="light"] {
+  color-scheme: light;
+
+  --cb-bg: #ffffff;
+  --cb-bg-elevated: #fafafa;
+  --cb-surface: #ffffff;
+  --cb-surface-hover: #f4f4f5;
+  --cb-header-bg: #fafafa;
+  --cb-border: rgba(0, 0, 0, 0.08);
+  --cb-border-strong: rgba(0, 0, 0, 0.12);
+
+  --cb-text: #09090b;
+  --cb-text-secondary: #3f3f46;
+  --cb-muted: #71717a;
+  --cb-icon: #3f3f46;
+  --cb-icon-muted: #71717a;
+
+  --cb-primary: #0d9488;
+  --cb-primary-hover: #0f766e;
+  --cb-primary-fg: #ffffff;
+  --cb-primary-muted: rgba(13, 148, 136, 0.1);
+  --cb-primary-glow: rgba(13, 148, 136, 0.25);
+
+  --cb-user-bubble: #0d9488;
+  --cb-user-bubble-hover: #0f766e;
+  --cb-user-text: #ffffff;
+  --cb-assistant-bubble: transparent;
+  --cb-assistant-border: transparent;
+
+  --cb-input-bg: #f4f4f5;
+  --cb-composer-bg: #fafafa;
+  --cb-btn-ghost-bg: #ffffff;
+  --cb-btn-ghost-border: rgba(0, 0, 0, 0.1);
+  --cb-btn-ghost-hover: #f4f4f5;
+  --cb-hover: rgba(0, 0, 0, 0.04);
+  --cb-active: rgba(0, 0, 0, 0.08);
+
+  --cb-error-bg: rgba(239, 68, 68, 0.08);
+  --cb-error-border: rgba(239, 68, 68, 0.3);
+  --cb-error-text: #dc2626;
+
+  --cb-tool-bg: #fafafa;
+  --cb-tool-bg-expanded: #ffffff;
+  --cb-tool-border: rgba(0, 0, 0, 0.08);
+  --cb-tool-code-bg: #f4f4f5;
+  --cb-tool-running-accent: #0d9488;
+  --cb-tool-success-accent: #059669;
+  --cb-tool-warning-accent: #d97706;
+  --cb-tool-error-accent: #dc2626;
+  --cb-tool-pill-running-bg: rgba(13, 148, 136, 0.1);
+  --cb-tool-pill-success-bg: rgba(5, 150, 105, 0.1);
+  --cb-tool-pill-warning-bg: rgba(217, 119, 6, 0.1);
+  --cb-tool-pill-error-bg: rgba(220, 38, 38, 0.1);
+
+  --cb-thinking-bg: rgba(13, 148, 136, 0.06);
+  --cb-thinking-border: rgba(13, 148, 136, 0.18);
+  --cb-thinking-text: #115e59;
+  --cb-thinking-label: #0d9488;
+
+  --cb-response-bg: rgba(0, 0, 0, 0.03);
+  --cb-response-border: rgba(0, 0, 0, 0.08);
+  --cb-response-text: #71717a;
+  --cb-response-label: #52525b;
+
+  --cb-shadow-panel: 0 25px 50px -12px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
+  --cb-shadow-fab: 0 10px 40px -8px var(--cb-primary-glow), 0 8px 16px rgba(0, 0, 0, 0.08);
+  --cb-backdrop: rgba(0, 0, 0, 0.35);
+}
