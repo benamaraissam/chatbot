@@ -14,8 +14,8 @@ from chatbot.core.events import (
     ToolCallStart,
     ToolResult,
 )
-from chatbot.mcp import MCPServer, MCPRegistry
-from chatbot.protocol import ChatRequest, Message, MessagePart, PROTOCOL_VERSION
+from chatbot.mcp import MCPRegistry, MCPServer
+from chatbot.protocol import PROTOCOL_VERSION, ChatRequest, Message, MessagePart
 from chatbot.tools import BearerAuth, ToolRegistry, from_openapi, http_tool
 
 __version__ = "0.1.0"

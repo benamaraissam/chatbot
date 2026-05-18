@@ -42,7 +42,7 @@ class Conversation:
         self.id = conversation_id
         self._user_context = user_context or {}
 
-    async def send(self, text: str, **kwargs: Any) -> "ChatbotResponse":
+    async def send(self, text: str, **kwargs: Any) -> ChatbotResponse:
         return await self._bot.send(
             text,
             conversation_id=self.id,

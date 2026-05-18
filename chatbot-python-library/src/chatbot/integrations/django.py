@@ -7,7 +7,7 @@ from typing import Any
 
 from chatbot.core.chatbot import Chatbot, _resolve_user_context
 from chatbot.integrations._common import get_protocol_headers, stream_chat_response
-from chatbot.protocol.schemas import ChatRequest, PROTOCOL_VERSION
+from chatbot.protocol.schemas import PROTOCOL_VERSION, ChatRequest
 
 
 def chatbot_urls(
@@ -29,7 +29,6 @@ def chatbot_urls(
     except ImportError as exc:
         raise ImportError("Install chatbot[django] for Django integration") from exc
 
-    import asyncio
     import json
 
     @csrf_exempt

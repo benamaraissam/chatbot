@@ -6,7 +6,7 @@ from collections.abc import AsyncIterator
 from typing import Any
 
 from chatbot.core.chatbot import Chatbot
-from chatbot.protocol.schemas import ChatRequest, PROTOCOL_VERSION
+from chatbot.protocol.schemas import PROTOCOL_VERSION, ChatRequest
 from chatbot.protocol.sse import sse_stream
 
 PROTOCOL_HEADER = "X-Chatbot-Protocol-Version"
