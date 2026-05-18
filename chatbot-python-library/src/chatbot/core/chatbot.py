@@ -19,6 +19,8 @@ from chatbot.providers.base import (
     ProviderRegistry,
     build_default_registry,
 )
+from chatbot.skills.load_tool import register_load_skill_tool
+from chatbot.skills.registry import SkillRegistry
 from chatbot.storage.base import MessageRecord
 from chatbot.storage.sqlite import create_storage
 from chatbot.tools.registry import ToolRegistry
@@ -93,6 +95,8 @@ class Chatbot:
         system_prompt: str | None = None,
         storage: str | None = "memory",
         secrets: Secrets | None = None,
+        max_tool_rounds: int = 10,
+        skills: SkillRegistry | None = None,
     ) -> None:
         configs = providers or DEFAULT_PROVIDERS
         if provider and provider not in configs:
@@ -106,6 +110,18 @@ class Chatbot:
         self._storage = create_storage(storage)
         self._mcp = MCPRegistry(mcp_servers) if mcp_servers else None
         self._mcp_loaded = False
+        self.max_tool_rounds = max_tool_rounds
+
+        # --- Skills wiring -------------------------------------------------
+        # If skills are provided: append their index to the system prompt and
+        # auto-register a ``load_skill`` tool the model can call on demand.
+        # Trigger matching happens per-turn in stream()/handle_request().
+        self.skills = skills
+        if skills and len(skills) > 0:
+            index = skills.build_index_addendum()
+            if index:
+                self.system_prompt = f"{self.system_prompt}\n\n{index}"
+            register_load_skill_tool(self.tools, skills)
 
     @property
     def providers(self) -> ProviderRegistry:
@@ -163,6 +179,21 @@ class Chatbot:
             if content:
                 result.append(ProviderMessage(role=msg.role, content=content))
         return result
+
+    def _effective_system_prompt(self, user_text: str | None) -> str:
+        """Return the system prompt, possibly augmented with triggered skill bodies.
+
+        Static index lives on ``self.system_prompt`` (set up in __init__). This
+        method only adds the *triggered* skills' full bodies for the current
+        turn — never touched if no skills, never touched if no trigger matches.
+        """
+        if not self.skills or not user_text:
+            return self.system_prompt
+        matched = self.skills.match_triggers(user_text)
+        if not matched:
+            return self.system_prompt
+        addendum = self.skills.build_trigger_addendum(matched)
+        return f"{self.system_prompt}\n\n{addendum}"
 
     def _resolve_provider(self, model: str | None = None) -> ResolvedProvider:
         """
@@ -266,7 +297,12 @@ class Chatbot:
 
         ctx = self._build_tool_context(user_context, conv_id)
         resolved = self._resolve_provider(model)
-        agent = AgentLoop(resolved.provider, self.tools, system_prompt=self.system_prompt)
+        agent = AgentLoop(
+            resolved.provider,
+            self.tools,
+            system_prompt=self._effective_system_prompt(content),
+            max_tool_rounds=self.max_tool_rounds,
+        )
 
         assistant_text: list[str] = []
         try:
@@ -305,8 +341,23 @@ class Chatbot:
             yield Done()
             return
 
+        # Extract the latest user-message text for skill trigger matching.
+        latest_user_text: str | None = None
+        if self.skills:
+            from chatbot.protocol.multimodal import parts_to_plain_summary
+
+            for m in reversed(request.messages):
+                if m.role == "user":
+                    latest_user_text = parts_to_plain_summary(m.parts)
+                    break
+
         resolved = self._resolve_provider(request.model)
-        agent = AgentLoop(resolved.provider, self.tools, system_prompt=self.system_prompt)
+        agent = AgentLoop(
+            resolved.provider,
+            self.tools,
+            system_prompt=self._effective_system_prompt(latest_user_text),
+            max_tool_rounds=self.max_tool_rounds,
+        )
 
         approved_raw = request.metadata.get("approved_tool_ids") or request.metadata.get(
             "approvedToolIds"

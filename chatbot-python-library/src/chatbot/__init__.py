@@ -16,7 +16,8 @@ from chatbot.core.events import (
 )
 from chatbot.mcp import MCPRegistry, MCPServer
 from chatbot.protocol import PROTOCOL_VERSION, ChatRequest, Message, MessagePart
-from chatbot.tools import BearerAuth, ToolRegistry, from_openapi, http_tool
+from chatbot.skills import Skill, SkillFrontmatter, SkillRegistry
+from chatbot.tools import BearerAuth, ToolRegistry, from_openapi, http_tool, paginated
 
 __version__ = "0.1.0"
 
@@ -36,6 +37,9 @@ __all__ = [
     "MessageStart",
     "PROTOCOL_VERSION",
     "Secrets",
+    "Skill",
+    "SkillFrontmatter",
+    "SkillRegistry",
     "StreamEvent",
     "TextDelta",
     "ToolApprovalRequired",
@@ -48,4 +52,5 @@ __all__ = [
     "UserContextProvider",
     "from_openapi",
     "http_tool",
+    "paginated",
 ]

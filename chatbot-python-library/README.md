@@ -127,7 +127,7 @@ pip install python-dotenv           # ou pip install -e ".[server]"
 | `CHATBOT_DEFAULT_PROVIDER` | `mock` ou `openai` |
 | `ANTHROPIC_API_KEY` | Optionnel, provider Claude |
 
-`examples/02_fastapi_app.py` charge automatiquement `chatbot-python-library/.env`.
+`examples/02_web_apps/{fastapi,flask,django}_app.py` chargent automatiquement `chatbot-python-library/.env`.
 
 | Extra | Contenu |
 |-------|---------|
@@ -204,6 +204,14 @@ providers:
     base_url: http://localhost:11434/v1
     api_key_env: OPENAI_API_KEY   # souvent "ollama" ou vide selon le serveur
 
+  # Azure OpenAI — alias : azure, azure_openai
+  azure:
+    model: gpt-4o-prod              # nom du déploiement Azure
+    api_key_env: AZURE_OPENAI_API_KEY
+    base_url_env: AZURE_OPENAI_ENDPOINT   # https://<resource>.openai.azure.com
+    extra:
+      api_version: "2024-10-21"
+
   # LiteLLM (100+ modèles) — pip install "chatbot[litellm]"
   # litellm:
   #   model: azure/gpt-4o
@@ -223,11 +231,12 @@ providers:
 
 | Champ (par provider) | Description |
 |----------------------|-------------|
-| `model` | Modèle par défaut pour ce provider |
+| `model` | Modèle par défaut pour ce provider (déploiement pour Azure) |
 | `api_key` | Clé en dur (déconseillé en prod) |
 | `api_key_env` | Nom de variable d’environnement pour la clé |
 | `base_url` | URL racine ou complète (OpenAI-compatible) |
 | `base_url_env` | Variable d’env pour l’URL |
+| `extra` | Options spécifiques au provider (Azure : `api_version`, `use_aad`, `azure_ad_token`/`azure_ad_token_env`) |
 
 > Le serveur standalone **ne charge pas les tools Python** du dossier `examples/` — il expose seulement le chat configuré. Pour des tools custom, utiliser FastAPI + `Chatbot(tools=...)` (voir plus bas).
 
@@ -244,6 +253,7 @@ Chaque **clé** du dict `providers` est le nom que vous utilisez dans `default_p
 | `mock` ou `model: mock` | Mock | Démo, scénarios keyword (`thinking demo`, `weather`, …) |
 | `claude`, `anthropic` | Anthropic | `ANTHROPIC_API_KEY` |
 | `openai`, `gpt` | OpenAI-compatible | `OPENAI_API_KEY`, `base_url` |
+| `azure`, `azure_openai` | Azure OpenAI | `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `model` = nom de déploiement |
 | `litellm` | LiteLLM | Extra `[litellm]` |
 
 ```python
@@ -269,18 +279,86 @@ bot = Chatbot(
     default_provider="mock",
     system_prompt="You are a concise assistant.",
     storage="memory",  # ou "sqlite:///./data/chat.db"
+    max_tool_rounds=10,  # LLM→tool→LLM rounds before the agent forces a wrap-up
 )
 ```
 
+**`max_tool_rounds`** caps how many LLM-call-then-tool-execute rounds the agent runs per user turn. Default 10 — handles paginated workflows comfortably. When the budget is hit, the agent makes one final no-tools call so the model produces a closing answer from whatever it has gathered. The user always gets a real reply; the `MessageEnd` event carries `finish_reason="max_tool_rounds"` for observability.
+
 ### OpenAI — URL et modèles personnalisés
 
-Compatible **OpenAI**, **Ollama**, **vLLM**, **Azure OpenAI**, gateways, etc.
+Compatible **OpenAI**, **Ollama**, **vLLM**, gateways OpenAI-compatibles, etc.
 
 `base_url` accepte :
 
 - URL complète : `https://host/v1/chat/completions`
 - Racine API : `https://host/v1` ou `https://host`
 - Variable d’environnement : `base_url_env: OPENAI_BASE_URL`
+
+### Azure OpenAI — déploiements + api-version
+
+Driver natif (sans LiteLLM). `model` est le **nom du déploiement** Azure, et `base_url` l’endpoint de la ressource Azure :
+
+```python
+bot = Chatbot(
+    providers={
+        "azure": {
+            "model": "gpt-4o-prod",            # nom du déploiement Azure
+            "api_key_env": "AZURE_OPENAI_API_KEY",
+            "base_url_env": "AZURE_OPENAI_ENDPOINT",   # https://<resource>.openai.azure.com
+            "extra": {"api_version": "2024-10-21"},
+        },
+    },
+    default_provider="azure",
+)
+```
+
+URL construite automatiquement :
+`https://<resource>.openai.azure.com/openai/deployments/<deployment>/chat/completions?api-version=<api_version>`
+
+Override par requête possible (déploiement → modèle) :
+
+```python
+await bot.send("Hi", model="azure:gpt-4o-preview")     # autre déploiement
+await bot.send("Hi", model="another-deployment")        # provider par défaut, déploiement override
+```
+
+**Authentification Entra ID (Azure AD) :**
+
+```python
+"azure": {
+    "model": "gpt-4o-prod",
+    "base_url_env": "AZURE_OPENAI_ENDPOINT",
+    "extra": {
+        "api_version": "2024-10-21",
+        "use_aad": True,
+        "azure_ad_token_env": "AZURE_OPENAI_AD_TOKEN",  # ou "azure_ad_token": "<token>"
+    },
+}
+```
+
+En AAD, l’en-tête `Authorization: Bearer <token>` est utilisé au lieu de `api-key`. Charge à l’app hôte de rafraîchir le token (via `DefaultAzureCredential` par ex.) et de l’exporter avant chaque appel — passer directement le token via `extra.azure_ad_token` au reboot suffit pour les déploiements statiques.
+
+#### Variables d’environnement Azure
+
+| Variable | Usage |
+|----------|--------|
+| `AZURE_OPENAI_ENDPOINT` | Endpoint de la ressource : `https://<resource>.openai.azure.com` |
+| `AZURE_OPENAI_API_KEY` | Clé API du compte Azure OpenAI |
+| `AZURE_OPENAI_API_VERSION` | API version (défaut `2024-10-21`) |
+| `AZURE_OPENAI_AD_TOKEN` | Token Entra ID (mode AAD) |
+
+#### Exemple YAML standalone
+
+```yaml
+providers:
+  azure:
+    model: gpt-4o-prod                # nom du déploiement
+    api_key_env: AZURE_OPENAI_API_KEY
+    base_url_env: AZURE_OPENAI_ENDPOINT
+    extra:
+      api_version: "2024-10-21"
+```
 
 ### Choisir le modèle par requête
 
@@ -467,7 +545,84 @@ bot = Chatbot(tools=tools, default_provider="claude")
 
 Voir `examples/06_with_openapi_import.py`.
 
-### MCP (Model Context Protocol)
+### Pagination & projection (`@paginated`)
+
+Large API responses blow past LLM context windows. Wrap any list-returning tool with `@paginated` to (a) project each item to a small allowlist of fields, (b) expose `offset`/`limit` to the LLM so it can page on its own, and (c) return a stable envelope. Composes with any tool — HTTP, DB query, MCP wrapper, plain function.
+
+```python
+from chatbot import ToolRegistry, paginated
+
+tools = ToolRegistry()
+
+@tools.register
+@paginated(
+    items_path="$.fonds",                          # dotted path, callable, or None to auto-detect
+    fields=("isin", "currency", "ytd", "nav"),     # allowlist; None = keep small scalars
+    id_fields=("id", "isin", "ticker"),            # always preserved
+    max_field_chars=200,                            # truncate long string values
+    default_limit=25,
+    max_limit=50,
+    request_args=("profile", "language"),          # forward call kwargs into envelope
+)
+async def search_funds(ctx, profile: str = "PV_LU-FSE", language: str = "ENG") -> dict:
+    """Search funds — `offset` and `limit` are injected into the tool schema automatically."""
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        r = await client.get(f"https://api.example.com/funds/{profile}/{language}")
+        r.raise_for_status()
+        return r.json()
+```
+
+**Composing with `@http_tool`** — for a declarative tool with no body at all, stack `@paginated` over `@http_tool`. The decorator order matters (paginated outside, http_tool inside), and `@paginated` auto-disables `@http_tool`'s response cap so it can see the full payload:
+
+```python
+from chatbot import paginated
+from chatbot.tools import http_tool
+
+@tools.register
+@paginated(
+    fields=("isin", "currency", "ytd", "nav"),
+    id_fields=("id", "isin", "ticker"),
+    request_args=("profile", "language"),
+)
+@http_tool(
+    method="GET",
+    url="https://api.example.com/funds/{profile}/{language}",
+    timeout=20.0,
+    max_response_chars=None,    # @paginated will project + slice
+)
+async def search_funds(ctx, profile: str = "PV_LU-FSE", language: str = "ENG") -> dict:
+    """Search funds — no body needed; the decorator stack does everything."""
+```
+
+If you reverse the order (`@http_tool` above `@paginated`), the library raises a clear `TypeError` — `@http_tool` replaces the function body, so pagination below it would be silently ignored.
+
+**`request_args` vs `extra_scalars`** — both add scalar context to the envelope, but they pull from different places:
+
+- `request_args=(...)` reads from the **call kwargs** of the wrapped function (with defaults applied). Use this for parameters the LLM passed (or could have passed) — it's what you want 95% of the time.
+- `extra_scalars=(...)` reads from the **payload returned by the wrapped function**. Use only when the upstream response itself carries useful context that isn't available as a call arg (e.g. a server-computed `as_of_date`).
+
+When both forward the same key, `request_args` wins. Neither can overwrite the reserved core envelope keys (`total`, `offset`, `limit`, `returned`, `has_more`, `items`).
+
+Envelope returned to the LLM:
+
+```json
+{
+  "total": 850,
+  "offset": 0,
+  "limit": 25,
+  "returned": 25,
+  "has_more": true,
+  "items": [{ "isin": "FR0010135103", "currency": "EUR", "ytd": 8.42 }, ...],
+  "profile": "PV_LU-FSE",
+  "language": "ENG"
+}
+```
+
+Why this beats the post-hoc `max_response_chars` truncation in `@http_tool`: with `@paginated` the LLM can ask for `offset=25` to see the next page; with truncation it just gets a `_truncated: true` marker and no way forward.
+
+**Decorator order matters** — put `@paginated` *inside* `@tools.register` so the registry sees the augmented signature (with `offset`/`limit`).
+
+
 
 ```python
 from chatbot import Chatbot
@@ -523,7 +678,7 @@ app.include_router(
 )
 ```
 
-Lancer : `python examples/02_fastapi_app.py` — aligné avec la démo React (`npm run dev`).
+Lancer : `python examples/02_web_apps/fastapi_app.py` — aligné avec la démo React (`npm run dev`).
 
 ### Stockage des conversations
 
@@ -547,9 +702,7 @@ await conv.send("Follow-up")  # même conversation_id
 | Fichier | Description |
 |---------|-------------|
 | `examples/01_library_mode.py` | Mode librairie pur |
-| `examples/02_fastapi_app.py` | App FastAPI existante |
-| `examples/03_flask_app.py` | Blueprint Flask |
-| `examples/04_django_project/` | Snippet Django |
+| `examples/02_web_apps/` | Apps FastAPI **+ Flask + Django** partageant `bot.py` & `tools.py` (8 patterns d'outils, 4 providers) |
 | `examples/05_with_http_tools.py` | Tools HTTP |
 | `examples/06_with_openapi_import.py` | Import OpenAPI |
 | `examples/07_with_mcp.py` | Serveurs MCP |
@@ -567,7 +720,7 @@ pytest tests/ -v
 Utiliser Gunicorn avec workers async :
 
 ```bash
-gunicorn -k gevent -w 1 -b 0.0.0.0:5000 examples.03_flask_app:app
+gunicorn -k gevent -w 1 -b 0.0.0.0:5000 --chdir examples/02_web_apps flask_app:app
 ```
 
 Ou migrer vers Quart pour l'async natif.

@@ -15,6 +15,8 @@ class ProviderSettings(BaseModel):
     api_key_env: str | None = None
     base_url: str | None = None
     base_url_env: str | None = None
+    # Provider-specific options (e.g. Azure: api_version, use_aad, azure_ad_token_env).
+    extra: dict[str, Any] = Field(default_factory=dict)
 
 
 class ServerConfig(BaseModel):

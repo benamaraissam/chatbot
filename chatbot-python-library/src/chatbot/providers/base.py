@@ -123,6 +123,7 @@ def build_default_registry(
 ) -> ProviderRegistry:
     """Build registry from Chatbot-style provider config dict."""
     from chatbot.providers.anthropic import AnthropicProvider
+    from chatbot.providers.azure_openai import AzureOpenAIProvider
     from chatbot.providers.litellm import LiteLLMProvider
     from chatbot.providers.mock import MockProvider
     from chatbot.providers.openai import OpenAIProvider
@@ -134,6 +135,9 @@ def build_default_registry(
         "anthropic": AnthropicProvider,
         "openai": OpenAIProvider,
         "gpt": OpenAIProvider,
+        "azure": AzureOpenAIProvider,
+        "azure_openai": AzureOpenAIProvider,
+        "azureopenai": AzureOpenAIProvider,
         "litellm": LiteLLMProvider,
     }
 

@@ -47,13 +47,22 @@ class AgentLoop:
     Uses provider streaming; tool execution via ToolRegistry.
     """
 
+    # When the tool-round budget is exhausted, the agent makes one final
+    # no-tools provider call so the model can write a closing answer from
+    # whatever it has gathered. This addendum is appended to ``system_prompt``.
+    _WRAP_UP_SYSTEM_ADDENDUM = (
+        "\n\nIMPORTANT: You have reached the tool-call budget. Do not request any "
+        "more tools. Summarize what you have gathered so far and answer the user's "
+        "question with the data available. Be explicit if the picture is partial."
+    )
+
     def __init__(
         self,
         provider: BaseProvider,
         tools: ToolRegistry,
         *,
         system_prompt: str | None = None,
-        max_tool_rounds: int = 5,
+        max_tool_rounds: int = 10,
     ) -> None:
         self.provider = provider
         self.tools = tools
@@ -115,6 +124,42 @@ class AgentLoop:
                     content=json.dumps(payload, default=str, ensure_ascii=False),
                 )
             )
+
+    async def _stream_wrap_up(
+        self,
+        messages: list[ProviderMessage],
+        *,
+        model: str | None = None,
+    ) -> AsyncIterator[StreamEvent]:
+        """Final no-tools call so the model produces a closing answer.
+
+        Streams the resulting text/thinking deltas to the caller, then ends with
+        ``MessageEnd(finish_reason="max_tool_rounds")`` so observability still
+        sees that the budget was hit even though the user got a real answer.
+        """
+        usage: dict[str, int] | None = None
+        wrap_up_system = (self.system_prompt or "") + self._WRAP_UP_SYSTEM_ADDENDUM
+        try:
+            async for chunk in self.provider.stream(
+                messages,
+                system_prompt=wrap_up_system,
+                tools_schema=None,
+                model=model,
+            ):
+                if chunk.thinking_delta:
+                    yield ThinkingDelta(delta=chunk.thinking_delta)
+                if chunk.text_delta:
+                    yield TextDelta(delta=chunk.text_delta)
+                if chunk.finish_reason:
+                    usage = chunk.usage
+        except Exception as exc:
+            # If the wrap-up call itself fails, surface the cap as an error
+            # rather than silently dying — same observability as before.
+            yield ErrorEvent(
+                code="max_tool_rounds",
+                message=f"Tool budget exhausted and wrap-up call failed: {exc}",
+            )
+        yield MessageEnd(usage=usage, finish_reason="max_tool_rounds")
 
     async def run(
         self,
@@ -250,5 +295,8 @@ class AgentLoop:
                 text_buffer = ""
                 thinking_buffer = ""
 
-        yield ErrorEvent(code="max_tool_rounds", message="Maximum tool execution rounds reached")
-        yield MessageEnd(finish_reason="max_tool_rounds")
+        # Tool budget exhausted. Instead of leaving the user with no answer,
+        # give the model one more chance to summarize — no tools available, so
+        # it must respond with text.
+        async for event in self._stream_wrap_up(current_messages, model=model):
+            yield event

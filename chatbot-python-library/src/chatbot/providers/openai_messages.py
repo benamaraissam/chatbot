@@ -44,4 +44,6 @@ def should_include_stream_usage(chat_completions_url: str) -> bool:
     if env in ("0", "false", "no", "off"):
         return False
     host = (urlparse(chat_completions_url).hostname or "").lower()
-    return host.endswith("openai.com")
+    # Native OpenAI and Azure OpenAI both support stream_options.include_usage
+    # on recent API versions. Other gateways often don't and 400 on it.
+    return host.endswith("openai.com") or host.endswith("openai.azure.com")

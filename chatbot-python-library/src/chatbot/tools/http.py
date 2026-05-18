@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import re
 from collections.abc import Callable
@@ -58,6 +59,15 @@ def http_tool(
     )
 
     def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+        # Reject the reversed decorator order — @http_tool replaces the body, so
+        # wrapping a @paginated function below it silently throws pagination away.
+        if hasattr(fn, "_paginated_config"):
+            raise TypeError(
+                "@http_tool must wrap a plain async function, not a @paginated one. "
+                "Place @paginated(...) ABOVE @http_tool(...) so pagination wraps the "
+                "HTTP call rather than the other way around."
+            )
+
         tool_name = name or fn.__name__
         description = (fn.__doc__ or "").strip() or tool_name
 
@@ -97,6 +107,16 @@ def http_tool(
 
         http_impl.__name__ = tool_name
         http_impl.__doc__ = description
+        # Preserve the original function's signature/annotations on the
+        # replacement so outer decorators (e.g. @paginated) can introspect the
+        # call args. Without this, ``inspect.signature(http_impl)`` would
+        # return only ``(ctx, **kwargs)``.
+        try:
+            http_impl.__signature__ = inspect.signature(fn)  # type: ignore[attr-defined]
+        except (TypeError, ValueError):
+            pass
+        http_impl.__wrapped__ = fn  # type: ignore[attr-defined]
+        http_impl.__annotations__ = dict(getattr(fn, "__annotations__", {}))
 
         registered = RegisteredTool(
             name=tool_name,
@@ -109,6 +129,9 @@ def http_tool(
         )
         # Store for manual registration via registry.extend
         http_impl._chatbot_registered_tool = registered  # type: ignore[attr-defined]
+        # Exposed so outer decorators (e.g. @paginated) can mutate the response
+        # cap when they handle truncation themselves.
+        http_impl._chatbot_http_tool_config = config  # type: ignore[attr-defined]
         return http_impl
 
     return decorator

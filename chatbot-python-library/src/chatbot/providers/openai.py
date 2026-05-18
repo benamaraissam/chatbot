@@ -47,14 +47,24 @@ class OpenAIProvider(BaseProvider):
             self.config.resolve_base_url(default_env="OPENAI_BASE_URL")
         )
 
-    async def stream(
-        self,
-        messages: list[ProviderMessage],
-        *,
-        system_prompt: str | None = None,
-        tools_schema: list[dict[str, Any]] | None = None,
-        model: str | None = None,
-    ) -> AsyncIterator[ProviderStreamChunk]:
+    # ----- Override hooks (used by Azure / other OpenAI-compatible subclasses) -----
+
+    def _request_url(self, effective_model: str) -> str:
+        """Return the URL to POST the chat-completions request to.
+
+        Subclasses (Azure) may use ``effective_model`` to build a per-deployment URL.
+        """
+        return self.chat_completions_url()
+
+    def _auth_headers(self) -> dict[str, str]:
+        """Return auth + content-type headers. Raises if credentials are missing."""
+        api_key = self._resolve_api_key_or_raise()
+        return {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+
+    def _resolve_api_key_or_raise(self) -> str:
         try:
             api_key = self.config.resolve_api_key()
         except ValueError:
@@ -66,15 +76,29 @@ class OpenAIProvider(BaseProvider):
                 "providers.openai.api_key_env (e.g. OPENAI_API_KEY) with that variable exported, "
                 "or export OPENAI_API_KEY in the shell before starting the server."
             )
+        return api_key
+
+    # -------------------------------------------------------------------------------
+
+    async def stream(
+        self,
+        messages: list[ProviderMessage],
+        *,
+        system_prompt: str | None = None,
+        tools_schema: list[dict[str, Any]] | None = None,
+        model: str | None = None,
+    ) -> AsyncIterator[ProviderStreamChunk]:
+        headers = self._auth_headers()
 
         openai_messages: list[dict[str, Any]] = []
         if system_prompt:
             openai_messages.append({"role": "system", "content": system_prompt})
         openai_messages.extend(provider_message_to_openai(m) for m in messages)
 
-        url = self.chat_completions_url()
+        effective_model = self.effective_model(model)
+        url = self._request_url(effective_model)
         body: dict[str, Any] = {
-            "model": self.effective_model(model),
+            "model": effective_model,
             "messages": openai_messages,
             "stream": True,
         }
@@ -83,7 +107,6 @@ class OpenAIProvider(BaseProvider):
         if tools_schema:
             body["tools"] = [{"type": "function", "function": t} for t in tools_schema]
 
-        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
         state = _OpenAIStreamState()
 
         async with httpx.AsyncClient(timeout=120.0) as client:
