@@ -16,6 +16,7 @@ class MockScenario(str, Enum):
     APPROVAL = "approval"
     ERROR = "error"
     MARKDOWN = "markdown"
+    FUNDS = "funds"
 
 
 @dataclass(frozen=True)
@@ -46,6 +47,8 @@ def count_tool_rounds(messages: list[Any]) -> int:
 def match_scenario(last_user: str, tool_round: int) -> ScenarioMatch:
     text = last_user.lower().strip()
 
+    if re.search(r"\b(bnp|fund|funds|bnpp|fundsearch)\b", text):
+        return ScenarioMatch(MockScenario.FUNDS, tool_round)
     if re.search(r"\b(full|demo|pipeline)\b", text):
         return ScenarioMatch(MockScenario.FULL, tool_round)
     if re.search(r"\b(weather|tool)\b", text):
@@ -70,4 +73,5 @@ DEMO_HINTS: list[dict[str, str]] = [
     {"label": "Approval gate", "message": "send approval email"},
     {"label": "Tool error", "message": "error demo"},
     {"label": "Markdown", "message": "markdown demo"},
+    {"label": "BNP funds (PV_LU-FSE / ENG)", "message": "search bnp funds PV_LU-FSE ENG"},
 ]

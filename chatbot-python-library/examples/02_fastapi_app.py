@@ -5,6 +5,8 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
+import httpx
+
 from chatbot import Chatbot, ToolRegistry
 from chatbot.env import load_dotenv_file
 from chatbot.integrations.fastapi import create_router
@@ -51,6 +53,105 @@ async def send_email(ctx, to: str, subject: str, body: str) -> dict:
 async def simulate_failure(ctx, reason: str = "unknown") -> dict:
     """Always fails — demos error state in tool cards."""
     raise RuntimeError(f"Simulated failure: {reason}")
+
+
+# BNP Paribas AM fund-search API returns a very large payload (hundreds of funds
+# with rich metadata). Sending the raw JSON back to the LLM blows past model
+# context limits (Moonshot 256k was overflowed at ~685k tokens). We project
+# each fund down to a small set of useful fields and paginate so the tool
+# result stays within budget. Use offset/limit to page through more results.
+
+_FUND_FIELDS = (
+    "fund_name",
+    "fundname",
+    "name",
+    "isin",
+    "currency",
+    "ccy",
+    "asset_class",
+    "category",
+    "share_class",
+    "share_class_name",
+    "domicile",
+    "ytd",
+    "nav",
+    "perf_ytd",
+    "perf_1y",
+    "perf_3y",
+)
+
+
+def _project_fund(item: dict) -> dict:
+    """Keep only short scalar fields useful for the LLM."""
+    out: dict = {}
+    for key in _FUND_FIELDS:
+        if key in item and isinstance(item[key], (str, int, float, bool)) and item[key] is not None:
+            value = item[key]
+            if isinstance(value, str) and len(value) > 200:
+                value = value[:200] + "…"
+            out[key] = value
+    # Always keep a stable id-like field if present.
+    for id_key in ("id", "fund_id", "isin", "ticker"):
+        if id_key in item and id_key not in out:
+            out[id_key] = item[id_key]
+    return out
+
+
+def _extract_fund_list(payload) -> list[dict]:
+    """Find the largest list of fund-like dicts inside the response."""
+    if isinstance(payload, list):
+        return [x for x in payload if isinstance(x, dict)]
+    if isinstance(payload, dict):
+        best: list[dict] = []
+        for value in payload.values():
+            if isinstance(value, list):
+                candidates = [x for x in value if isinstance(x, dict)]
+                if len(candidates) > len(best):
+                    best = candidates
+        return best
+    return []
+
+
+@tools.register
+async def bnpp_fund_search(
+    ctx,
+    profile: str = "PV_LU-FSE",
+    language: str = "ENG",
+    limit: int = 25,
+    offset: int = 0,
+) -> dict:
+    """Search BNP Paribas AM funds and return a paginated, slim projection.
+
+    Args:
+        profile: Country/platform profile (e.g. ``PV_LU-FSE``).
+        language: Two-or-three-letter language code (e.g. ``ENG``).
+        limit: Max funds to return per call (1–50). Use offset to page.
+        offset: Index of the first fund to return (0-based).
+    """
+    limit = max(1, min(int(limit), 50))
+    offset = max(0, int(offset))
+    url = (
+        f"https://api.bnpparibas-am.com/push/fundsearchv2/{profile}/{language}"
+        "?without_has_docs=True&action_column_tool=fundpanorama"
+    )
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        resp = await client.get(url)
+        resp.raise_for_status()
+        payload = resp.json()
+
+    funds = _extract_fund_list(payload)
+    total = len(funds)
+    page = [_project_fund(f) for f in funds[offset : offset + limit]]
+    return {
+        "profile": profile,
+        "language": language,
+        "total": total,
+        "offset": offset,
+        "limit": limit,
+        "returned": len(page),
+        "has_more": offset + len(page) < total,
+        "items": page,
+    }
 
 
 bot = Chatbot(

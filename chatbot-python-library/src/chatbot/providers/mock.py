@@ -229,6 +229,35 @@ class MockProvider(BaseProvider):
         ):
             yield chunk
 
+    async def _run_funds(self, tool_round: int) -> AsyncIterator[ProviderStreamChunk]:
+        if tool_round > 0:
+            summary = (
+                "Got the BNP Paribas AM fund list back from **bnpp_fund_search** "
+                "(profile `PV_LU-FSE`, language `ENG`). The tool card above shows the raw "
+                "JSON response from the live API."
+            )
+            async for chunk in self._stream_words(summary):
+                yield chunk
+            yield await self._finish_text()
+            return
+
+        async for chunk in self._stream_thinking(
+            "I'll call bnpp_fund_search with profile=PV_LU-FSE and language=ENG "
+            "to hit the BNP Paribas AM fund-search API."
+        ):
+            yield chunk
+        async for chunk in self._stream_tool(
+            tool_id="tool_bnpp_funds_1",
+            name="bnpp_fund_search",
+            input_data={
+                "profile": "PV_LU-FSE",
+                "language": "ENG",
+                "limit": 10,
+                "offset": 0,
+            },
+        ):
+            yield chunk
+
     async def _run_markdown(self) -> AsyncIterator[ProviderStreamChunk]:
         async for chunk in self._stream_thinking(
             "I'll format the response with markdown: table, code block, and list."
@@ -275,6 +304,9 @@ class MockProvider(BaseProvider):
                 yield c
         elif scenario == MockScenario.MARKDOWN:
             async for c in self._run_markdown():
+                yield c
+        elif scenario == MockScenario.FUNDS:
+            async for c in self._run_funds(tool_round):
                 yield c
 
     async def stream(
