@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class MockScenario(str, Enum):
+class MockScenario(StrEnum):
     SIMPLE = "simple"
     THINKING = "thinking"
     WEATHER = "weather"

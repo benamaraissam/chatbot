@@ -30,9 +30,9 @@ class ProviderConfig(BaseModel):
                 return key
             if self.api_key_env.startswith(("sk-", "pk-", "rk-")) or len(self.api_key_env) > 40:
                 raise ValueError(
-                    f"Provider config: api_key_env must be the NAME of an environment variable "
-                    f"(e.g. OPENAI_API_KEY), not the secret key itself. "
-                    f"Use api_key='...' in config, or run: export OPENAI_API_KEY='your-key'"
+                    "Provider config: api_key_env must be the NAME of an environment variable "
+                    "(e.g. OPENAI_API_KEY), not the secret key itself. "
+                    "Use api_key='...' in config, or run: export OPENAI_API_KEY='your-key'"
                 )
         return None
 
