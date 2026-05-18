@@ -58,7 +58,7 @@ class SkillRegistry:
     # ------------------------------------------------------------------ load
 
     @classmethod
-    def from_directory(cls, path: str | Path) -> "SkillRegistry":
+    def from_directory(cls, path: str | Path) -> SkillRegistry:
         """Build a registry by recursively scanning ``path`` for ``SKILL.md`` files."""
         registry = cls()
         registry.load_directory(path)

@@ -128,7 +128,10 @@ def paginated(
             payload = await fn(*args, **kwargs)
 
             items = _resolve_items(payload, items_path)
-            projected = [_project_item(it, allowed_fields, id_field_tuple, max_field_chars) for it in items]
+            projected = [
+                _project_item(it, allowed_fields, id_field_tuple, max_field_chars)
+                for it in items
+            ]
             page = projected[offset : offset + limit]
 
             envelope: dict[str, Any] = {

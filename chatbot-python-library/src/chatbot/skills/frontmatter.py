@@ -51,7 +51,7 @@ class SkillFrontmatter(BaseModel):
     )
 
     @classmethod
-    def from_raw(cls, raw: dict[str, Any]) -> "SkillFrontmatter":
+    def from_raw(cls, raw: dict[str, Any]) -> SkillFrontmatter:
         """Construct from a parsed YAML mapping, routing unknown keys into ``metadata``."""
         known = {k: v for k, v in raw.items() if k in _KNOWN_FIELDS}
         extras = {k: v for k, v in raw.items() if k not in _KNOWN_FIELDS and k != "metadata"}
