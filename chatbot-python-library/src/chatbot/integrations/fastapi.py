@@ -45,7 +45,11 @@ def create_router(
         return StreamingResponse(
             event_generator(),
             media_type="text/event-stream",
-            headers={**get_protocol_headers(), "Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+            headers={
+                **get_protocol_headers(),
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+            },
         )
 
     @router.get("/health")

@@ -44,7 +44,10 @@ def from_openapi(
             if include and not any(fnmatch.fnmatch(pattern, p) for p in include):
                 if not any(fnmatch.fnmatch(operation_id, p) for p in include):
                     continue
-            if exclude and any(fnmatch.fnmatch(pattern, p) or fnmatch.fnmatch(operation_id, p) for p in exclude):
+            if exclude and any(
+                fnmatch.fnmatch(pattern, p) or fnmatch.fnmatch(operation_id, p)
+                for p in exclude
+            ):
                 continue
 
             tool = _operation_to_tool(
@@ -106,7 +109,6 @@ def _operation_to_tool(
             required.extend(json_schema.get("required", []))
 
     schema = {"type": "object", "properties": properties, "required": required}
-    full_url_template = urljoin(base_url.rstrip("/") + "/", path.lstrip("/"))
 
     async def openapi_impl(ctx: ToolContext, **kwargs: Any) -> Any:
         resolved_path = path

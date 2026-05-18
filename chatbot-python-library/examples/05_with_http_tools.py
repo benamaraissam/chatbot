@@ -3,7 +3,7 @@
 import asyncio
 
 from chatbot import Chatbot, ToolRegistry
-from chatbot.tools import BearerAuth, http_tool, register_http_tools
+from chatbot.tools import http_tool, register_http_tools
 
 
 tools = ToolRegistry()

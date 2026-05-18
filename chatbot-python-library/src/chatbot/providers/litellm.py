@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from typing import Any
 
-from chatbot.providers.base import BaseProvider, ProviderConfig, ProviderMessage, ProviderStreamChunk
+from chatbot.providers.base import BaseProvider, ProviderMessage, ProviderStreamChunk
 
 
 class LiteLLMProvider(BaseProvider):

@@ -60,7 +60,12 @@ def parts_to_provider_content(parts: list[MessagePart]) -> str | list[dict[str, 
                 )
             else:
                 other_blocks.append(
-                    {"type": "text", "text": _non_image_attachment_text(part.name, part.mime_type, part.data)}
+                    {
+                        "type": "text",
+                        "text": _non_image_attachment_text(
+                            part.name, part.mime_type, part.data
+                        ),
+                    }
                 )
         elif isinstance(part, FilePart):
             if _should_send_as_image_url(part.mime_type, part.data):

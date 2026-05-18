@@ -4,7 +4,10 @@ import pytest
 
 from chatbot import Chatbot
 from chatbot.providers.openai import OpenAIProvider
-from chatbot.providers.urls import resolve_anthropic_messages_url, resolve_openai_chat_completions_url
+from chatbot.providers.urls import (
+    resolve_anthropic_messages_url,
+    resolve_openai_chat_completions_url,
+)
 from chatbot.providers.base import ProviderConfig
 
 

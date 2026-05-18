@@ -8,8 +8,18 @@ from collections.abc import AsyncIterator
 from typing import Any
 
 from chatbot.protocol.multimodal import provider_content_to_text
-from chatbot.providers.base import BaseProvider, ProviderConfig, ProviderMessage, ProviderStreamChunk
-from chatbot.providers.mock_scenarios import MockScenario, ScenarioMatch, count_tool_rounds, match_scenario
+from chatbot.providers.base import (
+    BaseProvider,
+    ProviderConfig,
+    ProviderMessage,
+    ProviderStreamChunk,
+)
+from chatbot.providers.mock_scenarios import (
+    MockScenario,
+    ScenarioMatch,
+    count_tool_rounds,
+    match_scenario,
+)
 
 # Delays (seconds) — tuned for visible UI feedback without feeling sluggish
 TOOL_GAP = 0.25
@@ -45,7 +55,9 @@ class MockProvider(BaseProvider):
             await asyncio.sleep(delay)
             yield ProviderStreamChunk(thinking_delta=ch)
 
-    async def _stream_chars(self, text: str, *, delay: float = CHAR_DELAY) -> AsyncIterator[ProviderStreamChunk]:
+    async def _stream_chars(
+        self, text: str, *, delay: float = CHAR_DELAY
+    ) -> AsyncIterator[ProviderStreamChunk]:
         for ch in text:
             await asyncio.sleep(delay)
             yield ProviderStreamChunk(text_delta=ch)
@@ -98,7 +110,10 @@ class MockProvider(BaseProvider):
         )
 
     async def _run_simple(self, last_user: str) -> AsyncIterator[ProviderStreamChunk]:
-        reply = f"Hi! You said: **{last_user}**. Try `full demo`, `weather`, `thinking`, or `send approval email`."
+        reply = (
+            f"Hi! You said: **{last_user}**. "
+            "Try `full demo`, `weather`, `thinking`, or `send approval email`."
+        )
         async for chunk in self._stream_words(reply):
             yield chunk
         yield await self._finish_text()
@@ -186,7 +201,10 @@ class MockProvider(BaseProvider):
 
     async def _run_approval(self, tool_round: int) -> AsyncIterator[ProviderStreamChunk]:
         if tool_round > 0:
-            reply = "Email **sent** after your approval. The agent resumed with `approvedToolIds` in metadata."
+            reply = (
+                "Email **sent** after your approval. "
+                "The agent resumed with `approvedToolIds` in metadata."
+            )
             async for chunk in self._stream_words(reply):
                 yield chunk
             yield await self._finish_text()
@@ -280,7 +298,9 @@ class MockProvider(BaseProvider):
             yield chunk
         yield await self._finish_text()
 
-    async def _dispatch(self, match: ScenarioMatch, last_user: str) -> AsyncIterator[ProviderStreamChunk]:
+    async def _dispatch(
+        self, match: ScenarioMatch, last_user: str
+    ) -> AsyncIterator[ProviderStreamChunk]:
         scenario = match.scenario
         tool_round = match.tool_round
 
@@ -317,14 +337,14 @@ class MockProvider(BaseProvider):
         tools_schema: list[dict[str, Any]] | None = None,
         model: str | None = None,
     ) -> AsyncIterator[ProviderStreamChunk]:
-        contents = [provider_content_to_text(m.content) for m in messages]
         last_user = next(
             (provider_content_to_text(m.content) for m in reversed(messages) if m.role == "user"),
             "",
         )
         tool_round = count_tool_rounds(messages)
 
-        # After tool execution the agent appends synthetic user messages — keep scenario from first user ask
+        # After tool execution the agent appends synthetic user messages —
+        # keep scenario from first user ask
         first_user = next(
             (provider_content_to_text(m.content) for m in messages if m.role == "user"),
             last_user,

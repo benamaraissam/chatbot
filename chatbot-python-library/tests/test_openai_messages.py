@@ -1,7 +1,10 @@
 """OpenAI request body helpers."""
 
 from chatbot.providers.base import ProviderMessage
-from chatbot.providers.openai_messages import provider_message_to_openai, should_include_stream_usage
+from chatbot.providers.openai_messages import (
+    provider_message_to_openai,
+    should_include_stream_usage,
+)
 
 
 def test_provider_message_user_text():

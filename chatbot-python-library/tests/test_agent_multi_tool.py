@@ -8,7 +8,12 @@ import pytest
 from chatbot.core.agent import AgentLoop
 from chatbot.core.context import ToolContext, UserContext
 from chatbot.core.events import ToolCallStart, ToolResult
-from chatbot.providers.base import BaseProvider, ProviderConfig, ProviderMessage, ProviderStreamChunk
+from chatbot.providers.base import (
+    BaseProvider,
+    ProviderConfig,
+    ProviderMessage,
+    ProviderStreamChunk,
+)
 from chatbot.tools.registry import ToolRegistry
 
 

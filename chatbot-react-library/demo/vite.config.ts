@@ -1,13 +1,17 @@
-import { resolve } from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+// Resolve directory of this config file without depending on @types/node —
+// URL is provided by the DOM lib and import.meta.url is standard ESM,
+// so no Node typings are required for the typecheck.
+const here = new URL(".", import.meta.url).pathname;
+
 export default defineConfig({
-  root: resolve(__dirname),
+  root: here,
   plugins: [react()],
   resolve: {
     alias: {
-      "chatbot-react": resolve(__dirname, "../src/index.ts"),
+      "chatbot-react": new URL("../src/index.ts", import.meta.url).pathname,
     },
   },
   server: {

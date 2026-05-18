@@ -5,9 +5,8 @@ from __future__ import annotations
 import inspect
 import json
 import time
-from collections.abc import Awaitable, Callable
-from dataclasses import dataclass, field
-from functools import wraps
+from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any, get_type_hints
 
 from pydantic import BaseModel, create_model
@@ -118,7 +117,11 @@ class ToolRegistry:
             return ToolApprovalRequired(id=name, name=name, input=arguments)
 
         if tool.rate_limit_per_user:
-            _check_rate_limit(self._rate_counters, f"{ctx.user.id}:{name}", tool.rate_limit_per_user)
+            _check_rate_limit(
+                self._rate_counters,
+                f"{ctx.user.id}:{name}",
+                tool.rate_limit_per_user,
+            )
 
         cache_key = None
         if tool.cache_ttl:

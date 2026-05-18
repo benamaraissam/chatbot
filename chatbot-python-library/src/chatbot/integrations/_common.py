@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncIterator
 from typing import Any
 
-from chatbot.core.chatbot import Chatbot, _resolve_user_context
-from chatbot.core.context import UserContextProvider
-from chatbot.core.events import StreamEvent
+from chatbot.core.chatbot import Chatbot
 from chatbot.protocol.schemas import ChatRequest, PROTOCOL_VERSION
 from chatbot.protocol.sse import sse_stream
 

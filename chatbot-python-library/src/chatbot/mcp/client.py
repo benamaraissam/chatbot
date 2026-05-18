@@ -11,7 +11,13 @@ logger = logging.getLogger(__name__)
 class MCPClient:
     """Connect to an MCP server and list/call tools."""
 
-    def __init__(self, name: str, *, url: str | None = None, command: list[str] | None = None) -> None:
+    def __init__(
+        self,
+        name: str,
+        *,
+        url: str | None = None,
+        command: list[str] | None = None,
+    ) -> None:
         self.name = name
         self.url = url
         self.command = command
@@ -33,7 +39,10 @@ class MCPClient:
             await self._session.initialize()
         elif self.url:
             # SSE transport — simplified; full impl depends on mcp version
-            logger.warning("MCP SSE URL transport for %s: connect at runtime via host app", self.name)
+            logger.warning(
+                "MCP SSE URL transport for %s: connect at runtime via host app",
+                self.name,
+            )
         else:
             raise ValueError(f"MCP server {self.name} needs url or command")
 
@@ -56,7 +65,8 @@ class MCPClient:
             await self.connect()
         result = await self._session.call_tool(tool_name, arguments)
         if result.content:
-            return result.content[0].model_dump() if hasattr(result.content[0], "model_dump") else result.content
+            first = result.content[0]
+            return first.model_dump() if hasattr(first, "model_dump") else result.content
         return None
 
     async def close(self) -> None:

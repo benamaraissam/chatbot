@@ -10,8 +10,11 @@ from typing import Any
 
 import httpx
 
-from chatbot.providers.base import BaseProvider, ProviderConfig, ProviderMessage, ProviderStreamChunk
-from chatbot.providers.openai_messages import provider_message_to_openai, should_include_stream_usage
+from chatbot.providers.base import BaseProvider, ProviderMessage, ProviderStreamChunk
+from chatbot.providers.openai_messages import (
+    provider_message_to_openai,
+    should_include_stream_usage,
+)
 from chatbot.providers.urls import resolve_openai_chat_completions_url
 
 DEFAULT_OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"

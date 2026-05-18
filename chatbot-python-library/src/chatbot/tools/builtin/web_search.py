@@ -33,7 +33,14 @@ async def _web_search(ctx: ToolContext, query: str, max_results: int = 5) -> lis
             )
             r.raise_for_status()
             organic = r.json().get("organic", [])
-            return [{"title": o.get("title"), "url": o.get("link"), "snippet": o.get("snippet")} for o in organic]
+            return [
+                {
+                    "title": o.get("title"),
+                    "url": o.get("link"),
+                    "snippet": o.get("snippet"),
+                }
+                for o in organic
+            ]
 
     raise ValueError("Set TAVILY_API_KEY or SERPER_API_KEY for web search")
 

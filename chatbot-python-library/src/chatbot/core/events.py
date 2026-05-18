@@ -149,7 +149,10 @@ def event_from_type(event_type: str, payload: dict[str, Any]) -> StreamEvent:
                 input=payload.get("input", {}),
             )
         case "tool_call_delta":
-            return ToolCallDelta(id=payload.get("id", ""), input_delta=payload.get("inputDelta", ""))
+            return ToolCallDelta(
+                id=payload.get("id", ""),
+                input_delta=payload.get("inputDelta", ""),
+            )
         case "tool_call_end":
             return ToolCallEnd(id=payload.get("id", ""))
         case "tool_result":

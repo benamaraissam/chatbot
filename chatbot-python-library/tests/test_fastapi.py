@@ -1,6 +1,5 @@
 """FastAPI adapter tests."""
 
-import json
 
 import pytest
 

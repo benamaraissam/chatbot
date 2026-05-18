@@ -13,8 +13,13 @@ from chatbot.core.context import Secrets, ToolContext, UserContext, UserContextP
 from chatbot.core.events import Done, ErrorEvent, MessageStart, StreamEvent, TextDelta
 from chatbot.mcp.registry import MCPRegistry, MCPServer
 from chatbot.protocol.schemas import ChatRequest, Message, TextPart
-from chatbot.providers.base import ProviderConfig, ProviderMessage, ProviderRegistry, build_default_registry
-from chatbot.storage.base import ConversationStorage, MessageRecord
+from chatbot.providers.base import (
+    ProviderConfig,
+    ProviderMessage,
+    ProviderRegistry,
+    build_default_registry,
+)
+from chatbot.storage.base import MessageRecord
 from chatbot.storage.sqlite import create_storage
 from chatbot.tools.registry import ToolRegistry
 
@@ -27,13 +32,23 @@ DEFAULT_PROVIDERS: dict[str, dict[str, Any]] = {
 class Conversation:
     """Handle for a multi-turn conversation."""
 
-    def __init__(self, bot: Chatbot, conversation_id: str, user_context: dict[str, Any] | None = None) -> None:
+    def __init__(
+        self,
+        bot: Chatbot,
+        conversation_id: str,
+        user_context: dict[str, Any] | None = None,
+    ) -> None:
         self._bot = bot
         self.id = conversation_id
         self._user_context = user_context or {}
 
     async def send(self, text: str, **kwargs: Any) -> "ChatbotResponse":
-        return await self._bot.send(text, conversation_id=self.id, user_context=self._user_context, **kwargs)
+        return await self._bot.send(
+            text,
+            conversation_id=self.id,
+            user_context=self._user_context,
+            **kwargs,
+        )
 
     async def stream(self, text: str, **kwargs: Any) -> AsyncIterator[StreamEvent]:
         async for event in self._bot.stream(
@@ -96,7 +111,11 @@ class Chatbot:
     def providers(self) -> ProviderRegistry:
         return self._registry
 
-    def conversation(self, id: str | None = None, user_context: dict[str, Any] | None = None) -> Conversation:
+    def conversation(
+        self,
+        id: str | None = None,
+        user_context: dict[str, Any] | None = None,
+    ) -> Conversation:
         conv_id = id or f"conv_{uuid.uuid4().hex[:12]}"
         return Conversation(self, conv_id, user_context)
 
@@ -108,7 +127,11 @@ class Chatbot:
     def _resolve_user(self, user_context: dict[str, Any] | None) -> UserContext:
         ctx = user_context or {}
         user_id = str(ctx.get("user_id", ctx.get("id", "anonymous")))
-        oauth_tokens = ctx.pop("_oauth_tokens", {}) if isinstance(ctx.get("_oauth_tokens"), dict) else {}
+        oauth_tokens = (
+            ctx.pop("_oauth_tokens", {})
+            if isinstance(ctx.get("_oauth_tokens"), dict)
+            else {}
+        )
         user = UserContext(
             id=user_id,
             email=ctx.get("email"),
@@ -207,7 +230,10 @@ class Chatbot:
         await self._ensure_mcp_tools()
 
         conv_id = conversation_id or f"conv_{uuid.uuid4().hex[:12]}"
-        await self._storage.create_conversation(conv_id, user_context.get("user_id") if user_context else None)
+        await self._storage.create_conversation(
+            conv_id,
+            user_context.get("user_id") if user_context else None,
+        )
 
         if messages is None:
             messages = [
@@ -233,7 +259,9 @@ class Chatbot:
 
         history = await self._storage.get_messages(conv_id)
         provider_messages = [
-            ProviderMessage(role=m.role, content=m.content) for m in history if m.role in ("user", "assistant")
+            ProviderMessage(role=m.role, content=m.content)
+            for m in history
+            if m.role in ("user", "assistant")
         ]
 
         ctx = self._build_tool_context(user_context, conv_id)

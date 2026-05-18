@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from urllib.parse import urljoin, urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse
 
 
 def resolve_openai_chat_completions_url(

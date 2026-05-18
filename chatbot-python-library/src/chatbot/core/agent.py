@@ -22,7 +22,7 @@ from chatbot.core.events import (
     ToolCallStart,
     ToolResult,
 )
-from chatbot.providers.base import BaseProvider, ProviderMessage, ProviderStreamChunk
+from chatbot.providers.base import BaseProvider, ProviderMessage
 from chatbot.tools.registry import ToolRegistry
 
 

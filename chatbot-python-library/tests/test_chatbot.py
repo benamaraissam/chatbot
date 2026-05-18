@@ -3,7 +3,6 @@
 import pytest
 
 from chatbot import Chatbot, TextDelta
-from chatbot.core.events import Done, MessageStart
 from chatbot.protocol.schemas import ChatRequest, Message, TextPart
 
 

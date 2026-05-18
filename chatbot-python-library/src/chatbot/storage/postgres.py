@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
 from typing import Any
-from urllib.parse import urlparse
 
 from chatbot.storage.base import ConversationStorage, MessageRecord
 
@@ -21,7 +19,9 @@ class PostgresStorage(ConversationStorage):
                 import asyncpg
             except ImportError as exc:
                 raise ImportError("Install chatbot[postgres] for PostgreSQL storage") from exc
-            self._pool = await asyncpg.create_pool(self._dsn.replace("postgres://", "postgresql://"))
+            self._pool = await asyncpg.create_pool(
+                self._dsn.replace("postgres://", "postgresql://")
+            )
             await self._init_schema()
         return self._pool
 

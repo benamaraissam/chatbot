@@ -3,7 +3,6 @@
 import asyncio
 
 from chatbot import Chatbot
-from chatbot.mcp import MCPServer
 
 # Configure MCP servers (stdio or SSE)
 mcp_servers = [

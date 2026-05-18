@@ -9,7 +9,7 @@ from typing import Any
 
 import httpx
 
-from chatbot.providers.base import BaseProvider, ProviderConfig, ProviderMessage, ProviderStreamChunk
+from chatbot.providers.base import BaseProvider, ProviderMessage, ProviderStreamChunk
 from chatbot.providers.urls import resolve_anthropic_messages_url
 
 DEFAULT_ANTHROPIC_MESSAGES_URL = "https://api.anthropic.com/v1/messages"
@@ -38,7 +38,11 @@ class AnthropicProvider(BaseProvider):
         if not api_key:
             raise ValueError("ANTHROPIC_API_KEY is required for Anthropic provider")
 
-        anthropic_messages = [{"role": m.role, "content": m.content} for m in messages if m.role != "system"]
+        anthropic_messages = [
+            {"role": m.role, "content": m.content}
+            for m in messages
+            if m.role != "system"
+        ]
         body: dict[str, Any] = {
             "model": self.effective_model(model),
             "max_tokens": 4096,
@@ -57,7 +61,9 @@ class AnthropicProvider(BaseProvider):
         }
 
         async with httpx.AsyncClient(timeout=120.0) as client:
-            async with client.stream("POST", self.messages_url(), json=body, headers=headers) as response:
+            async with client.stream(
+                "POST", self.messages_url(), json=body, headers=headers
+            ) as response:
                 response.raise_for_status()
                 async for line in response.aiter_lines():
                     if not line.startswith("data:"):
@@ -91,7 +97,9 @@ def _parse_anthropic_event(event: dict[str, Any]) -> ProviderStreamChunk | None:
                     "prompt_tokens": usage.get("input_tokens", 0) if usage else 0,
                     "completion_tokens": usage.get("output_tokens", 0) if usage else 0,
                     "total_tokens": (
-                        (usage.get("input_tokens", 0) + usage.get("output_tokens", 0)) if usage else 0
+                        usage.get("input_tokens", 0) + usage.get("output_tokens", 0)
+                        if usage
+                        else 0
                     ),
                 },
             )

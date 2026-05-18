@@ -1,11 +1,10 @@
 """Protocol schema and SSE tests."""
 
-import json
 
 import pytest
 
-from chatbot.protocol.schemas import PROTOCOL_VERSION, ChatRequest, ImagePart, Message, TextPart
-from chatbot.protocol.sse import SSEDecoder, encode_sse_event, stream_event_to_sse
+from chatbot.protocol.schemas import PROTOCOL_VERSION, ChatRequest, ImagePart
+from chatbot.protocol.sse import SSEDecoder, encode_sse_event
 from chatbot.core.events import TextDelta, ThinkingDelta, event_from_type
 
 

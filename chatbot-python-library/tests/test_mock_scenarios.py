@@ -4,13 +4,8 @@ import pytest
 
 from chatbot import Chatbot, ToolRegistry
 from chatbot.core.events import (
-    Done,
-    TextDelta,
     ThinkingDelta,
     ToolApprovalRequired,
-    ToolCallDelta,
-    ToolCallEnd,
-    ToolCallStart,
     ToolResult,
 )
 from chatbot.providers.mock_scenarios import MockScenario, match_scenario

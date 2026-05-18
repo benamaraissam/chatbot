@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import httpx
 from tenacity import AsyncRetrying, stop_after_attempt, wait_exponential
@@ -148,7 +149,10 @@ def _cap_response(payload: Any, max_chars: int | None) -> Any:
             "_truncated": True,
             "_original_size_chars": len(serialized),
             "_max_response_chars": max_chars,
-            "_hint": "Response was truncated. Re-call the tool with narrower filters or pagination.",
+            "_hint": (
+                "Response was truncated. "
+                "Re-call the tool with narrower filters or pagination."
+            ),
             "total": len(payload),
             "returned": len(kept),
             "items": kept,

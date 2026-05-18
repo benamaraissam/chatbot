@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from urllib.parse import urlparse
 
 from chatbot.storage.base import ConversationStorage, MessageRecord
 
@@ -59,7 +58,8 @@ class SQLiteStorage(ConversationStorage):
         with self._connect() as conn:
             conn.execute(
                 """
-                INSERT OR REPLACE INTO messages (id, conversation_id, role, content, metadata, created_at)
+                INSERT OR REPLACE INTO messages
+                    (id, conversation_id, role, content, metadata, created_at)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
@@ -76,7 +76,7 @@ class SQLiteStorage(ConversationStorage):
         with self._connect() as conn:
             conn.execute(
                 "INSERT OR IGNORE INTO conversations (id, user_id, created_at) VALUES (?, ?, ?)",
-                (conversation_id, user_id, datetime.now(timezone.utc).isoformat()),
+                (conversation_id, user_id, datetime.now(UTC).isoformat()),
             )
 
     async def delete_conversation(self, conversation_id: str) -> None:
@@ -86,12 +86,10 @@ class SQLiteStorage(ConversationStorage):
 
 
 def _row_to_record(row: tuple) -> MessageRecord:
-    from datetime import timezone
-
     meta = json.loads(row[4]) if row[4] else {}
     created = datetime.fromisoformat(row[5])
     if created.tzinfo is None:
-        created = created.replace(tzinfo=timezone.utc)
+        created = created.replace(tzinfo=UTC)
     return MessageRecord(
         id=row[0],
         conversation_id=row[1],
