@@ -1,0 +1,54 @@
+name: Publish Python → PyPI
+
+on:
+  push:
+    tags:
+      - "python-v*"
+
+jobs:
+  publish:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: chatbot-python-library
+
+    permissions:
+      contents: read
+      id-token: write  # required for PyPI trusted publishing
+
+    environment:
+      name: pypi
+      url: https://pypi.org/project/chatbot/
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Lint
+        run: uv run ruff check src/
+
+      - name: Tests
+        run: uv run pytest
+
+      - name: Sync version from tag
+        run: |
+          TAG="${GITHUB_REF_NAME#python-v}"
+          sed -i "s/^version = \".*\"/version = \"$TAG\"/" pyproject.toml
+
+      - name: Build
+        run: uv build
+
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: chatbot-python-library/dist/
