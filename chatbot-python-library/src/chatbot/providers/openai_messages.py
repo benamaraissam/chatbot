@@ -21,10 +21,11 @@ def provider_message_to_openai(message: ProviderMessage) -> dict[str, Any]:
     if message.tool_calls:
         out["tool_calls"] = message.tool_calls
         out["content"] = message.content
-        # Kimi / Moonshot thinking models require this on assistant tool-call turns.
-        out["reasoning_content"] = (
-            message.reasoning_content if message.reasoning_content is not None else ""
-        )
+        # Kimi / Moonshot thinking models require this on assistant tool-call turns,
+        # but most providers (e.g. Mistral) reject it as an extra field — only include
+        # it when there is actual reasoning content to send.
+        if message.reasoning_content:
+            out["reasoning_content"] = message.reasoning_content
         return out
 
     out["content"] = message.content if message.content is not None else ""

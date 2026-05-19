@@ -29,7 +29,7 @@ def test_provider_message_assistant_tool_calls():
     )
     assert msg["role"] == "assistant"
     assert msg["content"] is None
-    assert msg["reasoning_content"] == ""
+    assert "reasoning_content" not in msg
     assert len(msg["tool_calls"]) == 1
 
 
