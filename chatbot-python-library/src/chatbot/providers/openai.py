@@ -14,6 +14,7 @@ from chatbot.providers.base import BaseProvider, ProviderMessage, ProviderStream
 from chatbot.providers.openai_messages import (
     provider_message_to_openai,
     should_include_stream_usage,
+    should_require_reasoning_content,
 )
 from chatbot.providers.urls import resolve_openai_chat_completions_url
 
@@ -90,13 +91,16 @@ class OpenAIProvider(BaseProvider):
     ) -> AsyncIterator[ProviderStreamChunk]:
         headers = self._auth_headers()
 
+        effective_model = self.effective_model(model)
+        url = self._request_url(effective_model)
+
+        require_rc = should_require_reasoning_content(url)
         openai_messages: list[dict[str, Any]] = []
         if system_prompt:
             openai_messages.append({"role": "system", "content": system_prompt})
-        openai_messages.extend(provider_message_to_openai(m) for m in messages)
-
-        effective_model = self.effective_model(model)
-        url = self._request_url(effective_model)
+        openai_messages.extend(
+            provider_message_to_openai(m, require_reasoning_content=require_rc) for m in messages
+        )
         body: dict[str, Any] = {
             "model": effective_model,
             "messages": openai_messages,
