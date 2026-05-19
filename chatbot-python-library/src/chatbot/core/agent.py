@@ -11,6 +11,7 @@ from typing import Any
 from chatbot.core.context import ToolContext
 from chatbot.core.events import (
     ErrorEvent,
+    FilePartEvent,
     MessageEnd,
     MessageStart,
     StreamEvent,
@@ -22,6 +23,7 @@ from chatbot.core.events import (
     ToolCallStart,
     ToolResult,
 )
+from chatbot.protocol.schemas import FilePart
 from chatbot.providers.base import BaseProvider, ProviderMessage
 from chatbot.tools.registry import ToolRegistry
 
@@ -114,7 +116,29 @@ class AgentLoop:
         )
         for item in executed:
             if item.is_error:
-                payload = {"error": str(item.output)}
+                payload: Any = {"error": str(item.output)}
+            elif isinstance(item.output, FilePart):
+                # Tell the model a file was generated without dumping the full
+                # base64 blob into the context window.
+                payload = {
+                    "message": f"File generated: {item.output.name}",
+                    "name": item.output.name,
+                    "mimeType": item.output.mime_type,
+                }
+            elif isinstance(item.output, list) and any(
+                isinstance(r, FilePart) for r in item.output
+            ):
+                # Mixed list — summarize file parts, keep the rest as-is.
+                payload = [
+                    {
+                        "message": f"File generated: {r.name}",
+                        "name": r.name,
+                        "mimeType": r.mime_type,
+                    }
+                    if isinstance(r, FilePart)
+                    else r
+                    for r in item.output
+                ]
             else:
                 payload = item.output
             messages.append(
@@ -283,6 +307,15 @@ class AgentLoop:
                     return
 
                 yield ToolResult(id=tool.id, output=result, is_error=False)
+                # If the tool returned a FilePart (or a list of FileParts), emit
+                # FilePartEvent(s) so the frontend can attach them to the message.
+                file_parts: list[FilePart] = []
+                if isinstance(result, FilePart):
+                    file_parts = [result]
+                elif isinstance(result, list):
+                    file_parts = [r for r in result if isinstance(r, FilePart)]
+                for fp in file_parts:
+                    yield FilePartEvent(name=fp.name, mime_type=fp.mime_type, data=fp.data)
                 executed.append(_ExecutedTool(tool=tool, output=result, is_error=False))
 
             if executed:

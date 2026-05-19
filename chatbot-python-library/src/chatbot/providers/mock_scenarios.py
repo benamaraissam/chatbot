@@ -17,6 +17,7 @@ class MockScenario(StrEnum):
     ERROR = "error"
     MARKDOWN = "markdown"
     FUNDS = "funds"
+    SKILL = "skill"
 
 
 @dataclass(frozen=True)
@@ -49,6 +50,8 @@ def match_scenario(last_user: str, tool_round: int) -> ScenarioMatch:
 
     if re.search(r"\b(bnp|fund|funds|bnpp|fundsearch)\b", text):
         return ScenarioMatch(MockScenario.FUNDS, tool_round)
+    if re.search(r"\b(skill|skills)\b", text):
+        return ScenarioMatch(MockScenario.SKILL, tool_round)
     if re.search(r"\b(full|demo|pipeline)\b", text):
         return ScenarioMatch(MockScenario.FULL, tool_round)
     if re.search(r"\b(weather|tool)\b", text):
@@ -73,5 +76,6 @@ DEMO_HINTS: list[dict[str, str]] = [
     {"label": "Approval gate", "message": "send approval email"},
     {"label": "Tool error", "message": "error demo"},
     {"label": "Markdown", "message": "markdown demo"},
+    {"label": "Skills", "message": "skill demo"},
     {"label": "BNP funds (PV_LU-FSE / ENG)", "message": "search bnp funds PV_LU-FSE ENG"},
 ]

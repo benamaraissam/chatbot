@@ -24,6 +24,7 @@ from __future__ import annotations
 from chatbot import ToolRegistry, paginated
 from chatbot.core.context import ToolContext
 from chatbot.tools import http_tool
+from chatbot.tools.builtin import generate_file_tool
 
 
 # ---------------------------------------------------------------------------
@@ -212,5 +213,8 @@ def build_tools() -> ToolRegistry:
 
     # 8. Paginated + HTTP stack
     tools.register(_bnpp_fund_search, name="bnpp_fund_search")
+
+    # 9. File download — lets the LLM produce a downloadable file on request
+    tools.extend([generate_file_tool])
 
     return tools

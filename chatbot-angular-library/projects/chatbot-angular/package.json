@@ -1,0 +1,10 @@
+{
+  "name": "chatbot-angular",
+  "version": "0.1.0",
+  "description": "Angular chatbot UI library — port of chatbot-react-library",
+  "peerDependencies": {
+    "@angular/common": "^17.3.0",
+    "@angular/core": "^17.3.0"
+  },
+  "sideEffects": false
+}

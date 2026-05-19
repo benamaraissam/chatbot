@@ -1,15 +1,16 @@
-"""FastAPI variant of the demo app.
+"""FastAPI demo app.
 
-Run from the repo root::
+Run from the repo root:
 
     python examples/02_web_apps/fastapi_app.py
 
-Or with uvicorn directly (for --reload, working-dir matters)::
+Or with live reload:
 
     cd examples/02_web_apps && uvicorn fastapi_app:app --reload --port 8000
 
-The bot, tools, and provider config are shared with the Flask and Django
-variants (see ``bot.py`` / ``tools.py`` in this directory).
+CORS origins default to the common local dev ports (3000, 4200, 5173).
+Override with ``CORS_ORIGINS=https://app.example.com`` or set
+``CORS_ALLOW_ALL=true`` during development.
 """
 
 from __future__ import annotations
@@ -18,34 +19,63 @@ import os
 import sys
 from pathlib import Path
 
-# Make sibling modules importable when run as a script.
+# Allow running as a script from any working directory.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from chatbot.env import load_dotenv_file
 from chatbot.integrations.fastapi import create_router
-from chatbot.providers.mock_scenarios import DEMO_HINTS
 
-from bot import build_bot, configured_providers  # noqa: E402  — sibling import
-from tools import build_tools  # noqa: E402
+from bot import build_bot, configured_providers
+from tools import build_tools
 
-# Load chatbot-python-library/.env if present.
+# Load .env from the library root if present.
 load_dotenv_file(Path(__file__).resolve().parents[2] / ".env")
 
-
 # ---------------------------------------------------------------------------
-# Framework wiring
+# App
 # ---------------------------------------------------------------------------
 
 app = FastAPI(title="Chatbot demo — FastAPI")
+
+# ---------------------------------------------------------------------------
+# CORS
+# ---------------------------------------------------------------------------
+
+_allow_all = os.environ.get("CORS_ALLOW_ALL", "").lower() in ("1", "true", "yes")
+_raw_origins = os.environ.get("CORS_ORIGINS", "")
+
+if _allow_all:
+    _origins = ["*"]
+elif _raw_origins:
+    _origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+else:
+    _origins = [
+        "http://localhost:3000",
+        "http://localhost:4200",
+        "http://localhost:5173",
+    ]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
+
+# ---------------------------------------------------------------------------
+# Chatbot
+# ---------------------------------------------------------------------------
 
 tools = build_tools()
 bot = build_bot(tools)
 
 
 def get_user_context() -> dict:
-    """Stub auth — replace with FastAPI Depends(...) on your current-user dep."""
+    """Stub auth — replace with a real FastAPI dependency."""
     return {"user_id": "user_42", "email": "user@example.com"}
 
 
@@ -55,26 +85,24 @@ app.include_router(
     tags=["chatbot"],
 )
 
-
 # ---------------------------------------------------------------------------
-# Health / discovery
+# Health
 # ---------------------------------------------------------------------------
 
 
 @app.get("/")
-async def root() -> dict:
+async def health() -> dict:
     return {
-        "framework": "fastapi",
+        "status": "ok",
         "default_provider": bot._default_provider,
-        "providers": list(bot.providers.names),
         "configured_providers": configured_providers(),
         "tools": [t.name for t in tools.list_tools()],
-        "openai_key_set": bool(os.environ.get("OPENAI_API_KEY")),
-        "azure_endpoint_set": bool(os.environ.get("AZURE_OPENAI_ENDPOINT")),
-        "anthropic_key_set": bool(os.environ.get("ANTHROPIC_API_KEY")),
-        "try_in_chat": [h["message"] for h in DEMO_HINTS],
     }
 
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     import uvicorn

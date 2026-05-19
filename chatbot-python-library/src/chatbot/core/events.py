@@ -101,6 +101,23 @@ class ToolApprovalRequired(StreamEvent):
 
 
 @dataclass(frozen=True)
+class FilePartEvent(StreamEvent):
+    """Emitted when a tool produces a downloadable file (FilePart).
+
+    The frontend collects these during the streaming turn and attaches them to
+    the finalized assistant message so the user sees a download button.
+    """
+
+    event_type: Literal["file_part"] = field(default="file_part", init=False)
+    name: str = ""
+    mime_type: str = ""
+    data: str = ""  # base64-encoded file content
+
+    def to_payload(self) -> dict[str, Any]:
+        return {"name": self.name, "mimeType": self.mime_type, "data": self.data}
+
+
+@dataclass(frozen=True)
 class MessageEnd(StreamEvent):
     event_type: Literal["message_end"] = field(default="message_end", init=False)
     usage: dict[str, int] | None = None
@@ -155,6 +172,12 @@ def event_from_type(event_type: str, payload: dict[str, Any]) -> StreamEvent:
             )
         case "tool_call_end":
             return ToolCallEnd(id=payload.get("id", ""))
+        case "file_part":
+            return FilePartEvent(
+                name=payload.get("name", ""),
+                mime_type=payload.get("mimeType", ""),
+                data=payload.get("data", ""),
+            )
         case "tool_result":
             return ToolResult(
                 id=payload.get("id", ""),

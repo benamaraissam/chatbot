@@ -1,11 +1,11 @@
-import { FileText } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import type { FilePart, ImagePart, MessagePart } from "../types";
 import { isFilePart, isImagePart } from "../utils/messageParts";
 import { AttachmentImage } from "./AttachmentImage";
 
 interface MessageAttachmentsProps {
   parts: MessagePart[];
-  variant?: "user" | "inline";
+  variant?: "user" | "inline" | "assistant";
 }
 
 function isNonImageFile(part: MessagePart): part is FilePart {
@@ -29,7 +29,9 @@ export function MessageAttachments({
   const rootClass =
     variant === "user"
       ? "cb-user-attachments"
-      : "cb-message-attachments cb-message-attachments--inline";
+      : variant === "assistant"
+        ? "cb-message-attachments cb-message-attachments--assistant"
+        : "cb-message-attachments cb-message-attachments--inline";
 
   const renderImageFigure = (part: ImagePart, key: string) => (
     <figure key={key} className="cb-attachment cb-attachment--image">
@@ -54,17 +56,36 @@ export function MessageAttachments({
           `imgf-${i}`,
         ),
       )}
-      {files.map((part, i) => (
-        <div
-          key={`file-${i}`}
-          className="cb-attachment cb-attachment--file"
-          title={part.name}
-        >
-          <FileText size={18} className="cb-attachment-file-icon" aria-hidden />
-          <span className="cb-attachment-file-name">{part.name}</span>
-          <span className="cb-attachment-file-type">{part.mimeType}</span>
-        </div>
-      ))}
+      {files.map((part, i) => {
+        const isDownloadable = Boolean(part.data);
+        const href = isDownloadable
+          ? `data:${part.mimeType};base64,${part.data}`
+          : undefined;
+        return isDownloadable ? (
+          <a
+            key={`file-${i}`}
+            className="cb-attachment cb-attachment--file cb-attachment--downloadable"
+            href={href}
+            download={part.name}
+            title={`Download ${part.name}`}
+          >
+            <FileText size={18} className="cb-attachment-file-icon" aria-hidden />
+            <span className="cb-attachment-file-name">{part.name}</span>
+            <span className="cb-attachment-file-type">{part.mimeType}</span>
+            <Download size={14} className="cb-attachment-download-icon" aria-hidden />
+          </a>
+        ) : (
+          <div
+            key={`file-${i}`}
+            className="cb-attachment cb-attachment--file"
+            title={part.name}
+          >
+            <FileText size={18} className="cb-attachment-file-icon" aria-hidden />
+            <span className="cb-attachment-file-name">{part.name}</span>
+            <span className="cb-attachment-file-type">{part.mimeType}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }

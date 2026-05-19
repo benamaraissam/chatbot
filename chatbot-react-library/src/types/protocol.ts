@@ -55,6 +55,7 @@ export type SSEEventType =
   | "tool_call_end"
   | "tool_result"
   | "tool_approval_required"
+  | "file_part"
   | "message_end"
   | "error"
   | "done";

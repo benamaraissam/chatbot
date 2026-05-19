@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { ToolCallState } from "../types";
+import type { FilePart, ToolCallState } from "../types";
 import {
   revokeAllDisplayUrls,
   revokeMessageDisplayUrls,
@@ -26,6 +26,7 @@ export const createChatbotStore = (initialTheme: ThemeMode = "system") =>
     panelWide: false,
     embeddedPanelCollapsed: false,
     composerAttachments: [],
+    pendingFileParts: [],
 
     setOpen: (open) => set({ isOpen: open }),
     toggleOpen: () => set({ isOpen: !get().isOpen }),
@@ -107,6 +108,9 @@ export const createChatbotStore = (initialTheme: ThemeMode = "system") =>
       if (options?.revoke !== false) revokeAttachmentPreviews(items);
       set({ composerAttachments: [] });
     },
+    addPendingFilePart: (part: FilePart) =>
+      set({ pendingFileParts: [...get().pendingFileParts, part] }),
+    clearPendingFileParts: () => set({ pendingFileParts: [] }),
   }));
 
 export type ChatbotStore = ReturnType<typeof createChatbotStore>;

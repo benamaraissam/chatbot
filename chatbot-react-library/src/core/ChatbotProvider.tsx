@@ -202,6 +202,14 @@ export function ChatbotProvider({
             status: "approval",
           });
           break;
+        case "file_part":
+          s.addPendingFilePart({
+            type: "file",
+            name: String(event.data.name ?? "file"),
+            mimeType: String(event.data.mimeType ?? "application/octet-stream"),
+            data: String(event.data.data ?? ""),
+          });
+          break;
         case "message_end":
           break;
         case "error":
@@ -219,10 +227,14 @@ export function ChatbotProvider({
     const msgId = s.streamingMessageId;
     const text = s.streamingText;
     const thinking = s.streamingThinkingText.trim();
-    if (msgId && text) {
+    const fileParts = s.pendingFileParts;
+    if (msgId && (text || fileParts.length > 0)) {
       s.updateMessage(msgId, (m) => ({
         ...m,
-        parts: [{ type: "text", text }],
+        parts: [
+          ...(text ? [{ type: "text" as const, text }] : []),
+          ...fileParts,
+        ],
         ...(thinking ? { thinking: m.thinking ?? thinking } : {}),
       }));
     } else if (msgId && thinking) {
@@ -230,9 +242,10 @@ export function ChatbotProvider({
         ...m,
         thinking: m.thinking ?? thinking,
       }));
-    } else if (msgId && !text) {
+    } else if (msgId && !text && fileParts.length === 0) {
       s.setMessages(s.messages.filter((m) => m.id !== msgId));
     }
+    s.clearPendingFileParts();
     s.resetStreaming();
     s.setStreaming(false);
   }, [store]);

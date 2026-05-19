@@ -9,9 +9,23 @@ from typing import Any
 from chatbot.core.events import StreamEvent
 
 
+class _ChatbotJSONEncoder(json.JSONEncoder):
+    """JSON encoder that handles Pydantic models (e.g. FilePart returned by tools)."""
+
+    def default(self, obj: Any) -> Any:
+        # Pydantic v2 models expose model_dump(); use by_alias=True so camelCase
+        # field aliases (mimeType etc.) round-trip correctly to the frontend.
+        if hasattr(obj, "model_dump"):
+            return obj.model_dump(by_alias=True)
+        # Pydantic v1 models expose dict()
+        if hasattr(obj, "dict"):
+            return obj.dict()
+        return super().default(obj)
+
+
 def encode_sse_event(event_type: str, data: dict[str, Any] | None = None) -> str:
     """Encode a single SSE frame."""
-    payload = json.dumps(data or {}, ensure_ascii=False)
+    payload = json.dumps(data or {}, ensure_ascii=False, cls=_ChatbotJSONEncoder)
     return f"event: {event_type}\ndata: {payload}\n\n"
 
 
@@ -21,10 +35,19 @@ def stream_event_to_sse(event: StreamEvent) -> str:
 
 
 async def sse_stream(events: AsyncIterator[StreamEvent]) -> AsyncIterator[str]:
-    """Async iterator of SSE-encoded strings from stream events."""
-    async for event in events:
-        yield stream_event_to_sse(event)
-    yield encode_sse_event("done", {})
+    """Async iterator of SSE-encoded strings from stream events.
+
+    Exceptions raised by the upstream iterator are caught and forwarded to the
+    client as an ``error`` SSE frame so the HTTP response always terminates with
+    a complete chunked-encoding sequence (avoiding ERR_INCOMPLETE_CHUNKED_ENCODING).
+    """
+    try:
+        async for event in events:
+            yield stream_event_to_sse(event)
+    except Exception as exc:  # noqa: BLE001
+        yield encode_sse_event("error", {"message": str(exc)})
+    finally:
+        yield encode_sse_event("done", {})
 
 
 class SSEDecoder:

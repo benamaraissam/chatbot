@@ -1,4 +1,4 @@
-import type { Message, ToolCallState } from "../types";
+import type { FilePart, Message, ToolCallState } from "../types";
 import type { PendingAttachment } from "../utils/attachments";
 
 export type ThemeMode = "light" | "dark" | "system";
@@ -64,6 +64,8 @@ export interface ChatbotState {
   embeddedPanelCollapsed: boolean;
   /** Files/images staged in the composer before send. */
   composerAttachments: PendingAttachment[];
+  /** File parts produced by tools during the current streaming turn; flushed into the message on finalize. */
+  pendingFileParts: FilePart[];
 
   setOpen: (open: boolean) => void;
   toggleOpen: () => void;
@@ -89,4 +91,6 @@ export interface ChatbotState {
   addComposerAttachments: (items: PendingAttachment[]) => void;
   removeComposerAttachment: (id: string) => void;
   clearComposerAttachments: (options?: { revoke?: boolean }) => void;
+  addPendingFilePart: (part: FilePart) => void;
+  clearPendingFileParts: () => void;
 }

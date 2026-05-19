@@ -30,6 +30,8 @@ export function MessageBubble({
   const hasAttachments = message.parts.some(
     (p) => isImageLikePart(p) || isFilePart(p),
   );
+  const hasAssistantFiles =
+    !isUser && message.parts.some((p) => isFilePart(p));
   const showUserText =
     Boolean(text) && !(text === IMAGE_ONLY_DEFAULT_PROMPT && hasAttachments);
 
@@ -65,6 +67,9 @@ export function MessageBubble({
           <p className="cb-text-[13px] cb-text-cb-muted">…</p>
         )}
       </div>
+      {hasAssistantFiles && !isStreaming && (
+        <MessageAttachments parts={message.parts} variant="assistant" />
+      )}
       {canCopy && (
         <div className="cb-message-actions">
           <CopyButton text={text} ariaLabel="Copy response" />

@@ -39,8 +39,13 @@ def create_router(
         )
 
         async def event_generator():
-            async for chunk in stream_chat_response(bot, body, ctx):
-                yield chunk
+            try:
+                async for chunk in stream_chat_response(bot, body, ctx):
+                    yield chunk
+            except Exception:
+                # sse_stream already emits an error frame; just let the
+                # generator finish cleanly so chunked encoding is complete.
+                pass
 
         return StreamingResponse(
             event_generator(),
@@ -49,6 +54,7 @@ def create_router(
                 **get_protocol_headers(),
                 "Cache-Control": "no-cache",
                 "X-Accel-Buffering": "no",
+                "Connection": "keep-alive",
             },
         )
 

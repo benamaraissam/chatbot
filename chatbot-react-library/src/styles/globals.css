@@ -1573,6 +1573,35 @@
     background: var(--cb-hover);
   }
 
+  /* ── Skill badge (compact inline indicator for load_skill tool calls) ──── */
+
+  .cb-skill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.5rem 0.2rem 0.375rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--cb-primary) 30%, var(--cb-border));
+    background: color-mix(in srgb, var(--cb-primary) 8%, var(--cb-surface));
+    color: var(--cb-primary);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    width: fit-content;
+    user-select: none;
+  }
+
+  .cb-skill-badge--error {
+    border-color: color-mix(in srgb, var(--cb-tool-error-accent) 30%, var(--cb-border));
+    background: var(--cb-tool-pill-error-bg);
+    color: var(--cb-tool-error-accent);
+  }
+
+  .cb-skill-badge-label {
+    line-height: 1;
+  }
+
   .cb-sr-only {
     position: absolute;
     width: 1px;

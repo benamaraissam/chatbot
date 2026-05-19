@@ -1,12 +1,41 @@
-"""Chatbot construction shared by the FastAPI, Flask, and Django variants.
+"""Shared chatbot factory for the FastAPI, Flask, and Django variants.
 
-The provider stack is built from environment variables so the same code can run
-against the mock provider (default), OpenAI, Azure OpenAI, an OpenAI-compatible
-gateway (Ollama, vLLM, Moonshot, …), or Anthropic Claude.
+Provider selection
+------------------
+Set ``CHATBOT_DEFAULT_PROVIDER`` to ``mock`` (default), ``openai``, ``azure``,
+or ``claude``. Only providers whose credentials are present are registered, so
+the server boots with zero config (mock only).
 
-Pick the active provider with ``CHATBOT_DEFAULT_PROVIDER`` (``mock`` | ``openai``
-| ``azure`` | ``claude``). Only providers whose endpoint or key is set get
-registered, so the example still boots end-to-end with zero config.
+System prompt
+-------------
+Loaded from the ``prompts/`` directory next to this file via
+:class:`~chatbot.PromptRegistry`.  Every ``.md`` file in that directory with
+valid YAML frontmatter (``name``, ``description``) contributes to the system
+prompt, composed in ``order`` sequence.
+
+To add a domain-specific addendum without touching the base prompt, drop a new
+file in ``prompts/`` with a higher ``order`` value::
+
+    # prompts/finance-addendum.md
+    ---
+    name: finance-addendum
+    description: Finance domain guidance
+    order: 10
+    role: system
+    ---
+    When the user asks about funds or portfolio data …
+
+Override the prompt directory with ``CHATBOT_PROMPT_DIR``, or bypass the
+registry entirely with ``CHATBOT_SYSTEM_PROMPT`` (inline string).
+
+Skills
+------
+Loaded from the ``skills/`` directory next to this file via
+:class:`~chatbot.SkillRegistry`.  Each sub-folder that contains a ``SKILL.md``
+becomes a skill the model can call via ``load_skill``.
+
+Override the skills directory with ``CHATBOT_SKILLS_DIR``, or point to a
+single ``SKILL.md`` file with ``CHATBOT_SKILL_FILE`` to load just one skill.
 """
 
 from __future__ import annotations
@@ -14,18 +43,38 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from chatbot import Chatbot, SkillRegistry, ToolRegistry
+from chatbot import Chatbot, PromptRegistry, SkillRegistry, ToolRegistry
+
+_HERE = Path(__file__).resolve().parent
 
 
-def build_bot(tools: ToolRegistry) -> Chatbot:
-    """Return a Chatbot wired to every provider whose credentials are present."""
+def _load_system_prompt() -> str:
+    """Return the composed system prompt.
+
+    Resolution order:
+    1. ``CHATBOT_PROMPT_DIR`` env var — path to a prompts directory.
+    2. ``prompts/`` next to this file (default).
+    3. ``CHATBOT_SYSTEM_PROMPT`` env var — inline fallback string.
+    4. Bare default: ``"You are a helpful assistant."``.
+    """
+    prompt_dir = os.environ.get("CHATBOT_PROMPT_DIR", "").strip()
+    path = Path(prompt_dir) if prompt_dir else _HERE / "prompts"
+    if not path.is_absolute():
+        path = _HERE / path
+
+    registry = PromptRegistry.from_directory(path)
+    if len(registry) > 0:
+        return registry.build_system_prompt()
+
+    return os.environ.get("CHATBOT_SYSTEM_PROMPT", "You are a helpful assistant.")
+
+
+def _build_providers() -> tuple[dict[str, dict], str]:
+    """Return (providers dict, default provider name)."""
     providers: dict[str, dict] = {
-        # The mock provider is always available — drives the React demo UI
-        # scenarios (``thinking demo``, ``weather``, etc.).
         "mock": {"model": "mock"},
     }
 
-    # --- OpenAI / OpenAI-compatible gateways (Ollama, vLLM, Moonshot, …) ----
     if os.environ.get("OPENAI_API_KEY"):
         providers["openai"] = {
             "model": os.environ.get("CHATBOT_OPENAI_MODEL", "gpt-4o"),
@@ -33,7 +82,6 @@ def build_bot(tools: ToolRegistry) -> Chatbot:
             "base_url": os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
         }
 
-    # --- Azure OpenAI ------------------------------------------------------
     if os.environ.get("AZURE_OPENAI_ENDPOINT"):
         providers["azure"] = {
             "model": os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-4o"),
@@ -44,7 +92,6 @@ def build_bot(tools: ToolRegistry) -> Chatbot:
             },
         }
 
-    # --- Anthropic Claude --------------------------------------------------
     if os.environ.get("ANTHROPIC_API_KEY"):
         providers["claude"] = {
             "model": os.environ.get("CHATBOT_CLAUDE_MODEL", "claude-sonnet-4-20250514"),
@@ -53,36 +100,55 @@ def build_bot(tools: ToolRegistry) -> Chatbot:
 
     default = os.environ.get("CHATBOT_DEFAULT_PROVIDER", "mock")
     if default not in providers:
-        # Fall back to mock if the requested provider isn't configured.
         default = "mock"
 
-    # Load SKILL.md files from ./skills/ if the directory exists. Silently
-    # no-ops otherwise, so the example still boots when skills are removed.
-    skills_dir = Path(__file__).parent / "skills"
-    skills = SkillRegistry.from_directory(skills_dir)
+    return providers, default
+
+
+def _load_skills() -> SkillRegistry | None:
+    """Return a populated SkillRegistry, or None if no skills are found.
+
+    Resolution order:
+    1. ``CHATBOT_SKILL_FILE`` env var — path to a single ``SKILL.md`` file.
+    2. ``CHATBOT_SKILLS_DIR`` env var — path to a skills directory.
+    3. ``skills/`` next to this file (default).
+    """
+    skill_file = os.environ.get("CHATBOT_SKILL_FILE", "").strip()
+    if skill_file:
+        path = Path(skill_file)
+        if not path.is_absolute():
+            path = _HERE / path
+        if not path.exists():
+            raise FileNotFoundError(f"CHATBOT_SKILL_FILE not found: {path}")
+        return SkillRegistry.from_file(path)
+
+    skills_dir = os.environ.get("CHATBOT_SKILLS_DIR", "").strip()
+    path = Path(skills_dir) if skills_dir else _HERE / "skills"
+    if not path.is_absolute():
+        path = _HERE / path
+
+    registry = SkillRegistry.from_directory(path)
+    return registry if len(registry) > 0 else None
+
+
+def build_bot(tools: ToolRegistry) -> Chatbot:
+    """Return a configured Chatbot instance."""
+    providers, default = _build_providers()
+
+    skills = _load_skills()
 
     return Chatbot(
         providers=providers,
         default_provider=default,
         storage=os.environ.get("CHATBOT_STORAGE", "memory"),
-        system_prompt=os.environ.get(
-            "CHATBOT_SYSTEM_PROMPT",
-            "You are a helpful assistant. When you need data, prefer calling "
-            "tools over guessing. Cite the tool name in your reasoning.",
-        ),
+        system_prompt=_load_system_prompt(),
         tools=tools,
         max_tool_rounds=int(os.environ.get("CHATBOT_MAX_TOOL_ROUNDS", "10")),
-        skills=skills if len(skills) else None,
+        skills=skills,
     )
 
 
 def configured_providers() -> list[str]:
-    """Tiny introspection helper used by the framework variants' health route."""
-    names = ["mock"]
-    if os.environ.get("OPENAI_API_KEY"):
-        names.append("openai")
-    if os.environ.get("AZURE_OPENAI_ENDPOINT"):
-        names.append("azure")
-    if os.environ.get("ANTHROPIC_API_KEY"):
-        names.append("claude")
-    return names
+    """Names of providers whose credentials are present (used by health routes)."""
+    providers, _ = _build_providers()
+    return list(providers.keys())

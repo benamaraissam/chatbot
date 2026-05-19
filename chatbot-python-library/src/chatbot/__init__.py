@@ -15,6 +15,7 @@ from chatbot.core.events import (
     ToolResult,
 )
 from chatbot.mcp import MCPRegistry, MCPServer
+from chatbot.prompts import Prompt, PromptFrontmatter, PromptRegistry
 from chatbot.protocol import PROTOCOL_VERSION, ChatRequest, Message, MessagePart
 from chatbot.skills import Skill, SkillFrontmatter, SkillRegistry
 from chatbot.tools import BearerAuth, ToolRegistry, from_openapi, http_tool, paginated
@@ -36,6 +37,9 @@ __all__ = [
     "MessagePart",
     "MessageStart",
     "PROTOCOL_VERSION",
+    "Prompt",
+    "PromptFrontmatter",
+    "PromptRegistry",
     "Secrets",
     "Skill",
     "SkillFrontmatter",

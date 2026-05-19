@@ -64,6 +64,19 @@ class SkillRegistry:
         registry.load_directory(path)
         return registry
 
+    @classmethod
+    def from_file(cls, path: str | Path) -> SkillRegistry:
+        """Build a registry from a single ``SKILL.md`` file.
+
+        Useful when you want to load one specific skill without scanning a
+        whole directory::
+
+            registry = SkillRegistry.from_file("skills/funds/SKILL.md")
+        """
+        registry = cls()
+        registry.load_file(path)
+        return registry
+
     def load_directory(self, path: str | Path) -> None:
         """Add every SKILL.md found under ``path`` to this registry.
 
@@ -74,9 +87,22 @@ class SkillRegistry:
         if not root.exists():
             return
         for skill_md in sorted(root.rglob("SKILL.md")):
-            self.register(load_skill_file(skill_md))
+            self.load_file(skill_md)
+
+    def load_file(self, path: str | Path) -> Skill:
+        """Parse a single ``SKILL.md`` file and add it to this registry.
+
+        Returns the loaded :class:`Skill` so callers can inspect it if needed::
+
+            skill = registry.load_file("skills/funds/SKILL.md")
+            print(skill.name, "loaded")
+        """
+        skill = load_skill_file(path)
+        self.register(skill)
+        return skill
 
     def register(self, skill: Skill) -> None:
+        """Add or replace a skill in the registry."""
         self._skills[skill.frontmatter.name] = skill
 
     # ------------------------------------------------------------- access

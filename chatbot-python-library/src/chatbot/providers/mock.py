@@ -112,7 +112,7 @@ class MockProvider(BaseProvider):
     async def _run_simple(self, last_user: str) -> AsyncIterator[ProviderStreamChunk]:
         reply = (
             f"Hi! You said: **{last_user}**. "
-            "Try `full demo`, `weather`, `thinking`, or `send approval email`."
+            "Try `full demo`, `weather`, `thinking`, `send approval email`, or `skill demo`."
         )
         async for chunk in self._stream_words(reply):
             yield chunk
@@ -276,6 +276,31 @@ class MockProvider(BaseProvider):
         ):
             yield chunk
 
+    async def _run_skill(self, tool_round: int) -> AsyncIterator[ProviderStreamChunk]:
+        if tool_round > 0:
+            reply = (
+                "I loaded the **generate_file** skill and followed its instructions. "
+                "Skills are SKILL.md files registered via `SkillRegistry` — the model "
+                "calls `load_skill` to pull the full instructions before acting. "
+                "The badge above shows the skill that was loaded."
+            )
+            async for chunk in self._stream_words(reply):
+                yield chunk
+            yield await self._finish_text()
+            return
+
+        async for chunk in self._stream_thinking(
+            "The user asked about skills. I'll call load_skill to read the generate_file "
+            "skill instructions before responding."
+        ):
+            yield chunk
+        async for chunk in self._stream_tool(
+            tool_id="tool_skill_1",
+            name="load_skill",
+            input_data={"name": "generate_file"},
+        ):
+            yield chunk
+
     async def _run_markdown(self) -> AsyncIterator[ProviderStreamChunk]:
         async for chunk in self._stream_thinking(
             "I'll format the response with markdown: table, code block, and list."
@@ -324,6 +349,9 @@ class MockProvider(BaseProvider):
                 yield c
         elif scenario == MockScenario.MARKDOWN:
             async for c in self._run_markdown():
+                yield c
+        elif scenario == MockScenario.SKILL:
+            async for c in self._run_skill(tool_round):
                 yield c
         elif scenario == MockScenario.FUNDS:
             async for c in self._run_funds(tool_round):

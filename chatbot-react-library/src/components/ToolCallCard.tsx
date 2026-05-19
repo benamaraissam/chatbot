@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  BookOpen,
   CheckCircle2,
   ChevronRight,
   CloudSun,
@@ -47,7 +48,46 @@ function shouldExpandByStatus(status: ToolCallState["status"]): boolean {
   return status === "approval";
 }
 
+/** Compact inline badge rendered in place of a full card for load_skill calls. */
+function SkillBadge({ tool }: ToolCallCardProps) {
+  // tool.input arrives empty ({}) during streaming; actual args live in inputRaw.
+  // Try input first, then fall back to parsing inputRaw.
+  const skillName: string = (() => {
+    if (typeof tool.input?.name === "string") return tool.input.name;
+    if (tool.inputRaw) {
+      try {
+        const parsed = JSON.parse(tool.inputRaw) as Record<string, unknown>;
+        if (typeof parsed?.name === "string") return parsed.name;
+      } catch {}
+    }
+    return "skill";
+  })();
+  const isLoading = tool.status === "running";
+  const isFailed = tool.status === "error";
+
+  return (
+    <div
+      className={`cb-skill-badge${isFailed ? " cb-skill-badge--error" : ""}`}
+      title={isFailed ? "Failed to load skill" : `Skill "${skillName}" loaded`}
+    >
+      {isLoading ? (
+        <Loader2 size={11} className="cb-animate-spin" aria-hidden />
+      ) : isFailed ? (
+        <AlertTriangle size={11} aria-hidden />
+      ) : (
+        <BookOpen size={11} aria-hidden />
+      )}
+      <span className="cb-skill-badge-label">
+        {isLoading ? "Loading skill…" : `Skill: ${skillName}`}
+      </span>
+    </div>
+  );
+}
+
 export function ToolCallCard({ tool }: ToolCallCardProps) {
+  if (tool.name === "load_skill") {
+    return <SkillBadge tool={tool} />;
+  }
   const { config, respondToToolApproval } = useChatbotContext();
   const [open, setOpen] = useState(() => shouldExpandByStatus(tool.status));
 
