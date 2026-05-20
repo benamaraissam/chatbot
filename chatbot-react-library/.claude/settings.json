@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "description": "Claude Code settings for chatbot-react-library. Hooks run TypeScript typecheck after edits and a vite build before completion so AI-assisted changes do not break the package.",
+  "permissions": {
+    "allow": [
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(vite:*)",
+      "Read(./src/**)",
+      "Read(./demo/**)",
+      "Read(./design-system/**)",
+      "Edit(./src/**)",
+      "Edit(./demo/**)",
+      "Edit(./design-system/**)"
+    ],
+    "deny": [
+      "Edit(./node_modules/**)",
+      "Edit(./package-lock.json)",
+      "Edit(./dist/**)",
+      "Bash(rm -rf:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/typecheck.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/vite-build.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

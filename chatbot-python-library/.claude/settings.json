@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "description": "Claude Code settings for chatbot-python-library. Defines hooks that run ruff and pytest automatically so AI-assisted edits stay consistent with the codebase.",
+  "permissions": {
+    "allow": [
+      "Bash(pytest:*)",
+      "Bash(ruff:*)",
+      "Bash(python:*)",
+      "Bash(pip:*)",
+      "Read(./src/**)",
+      "Read(./tests/**)",
+      "Read(./examples/**)",
+      "Edit(./src/**)",
+      "Edit(./tests/**)"
+    ],
+    "deny": [
+      "Edit(./.venv/**)",
+      "Edit(./.env)",
+      "Bash(rm -rf:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/format-python.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/run-tests.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

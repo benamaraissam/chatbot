@@ -22,11 +22,20 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "${{ github.event_name }}" == "release" ]]; then
-            echo "Triggered by release event — proceeding."
+            TAG="${{ github.event.release.tag_name }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          if [[ "$TAG" != react-v* ]]; then
+            echo "Tag '$TAG' is not a react-v* tag — skipping."
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "Triggered by release event for $TAG — proceeding."
             echo "proceed=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          TAG="${GITHUB_REF_NAME}"
           if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
             echo "Release exists for $TAG — release event will publish. Skipping."
             echo "proceed=false" >> "$GITHUB_OUTPUT"

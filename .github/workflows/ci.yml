@@ -34,7 +34,7 @@ jobs:
         run: uv run pytest
 
   typecheck-react:
-    name: React typecheck
+    name: React typecheck & tests
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -52,6 +52,32 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Tests
+        run: npm test -- --run
+
+      - name: Build
+        run: npm run build
+
+  test-angular:
+    name: Angular build & tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: chatbot-angular-library
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Tests
+        run: npm test -- --watch=false --browsers=ChromeHeadless
 
       - name: Build
         run: npm run build
