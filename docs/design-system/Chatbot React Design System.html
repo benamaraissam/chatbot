@@ -1,0 +1,878 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chatbot React · Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ============= Tokens (single source, dark default) ============= */
+:root, .light {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-elev: #fafafa;
+  --surface: #ffffff;
+  --surface-hov: #f4f4f5;
+  --header-bg: #fafafa;
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.12);
+  --text: #09090b;
+  --text-sec: #3f3f46;
+  --muted: #71717a;
+  --icon: #3f3f46;
+  --icon-mut: #71717a;
+  --primary: #0d9488;
+  --primary-hov: #0f766e;
+  --primary-fg: #ffffff;
+  --primary-mut: rgba(13,148,136,0.1);
+  --primary-glow: rgba(13,148,136,0.25);
+  --user-bubble: #0d9488;
+  --composer: #fafafa;
+  --input-bg: #f4f4f5;
+  --ghost-bg: #ffffff;
+  --ghost-bd: rgba(0,0,0,0.1);
+  --ghost-hov: #f4f4f5;
+  --hover: rgba(0,0,0,0.04);
+  --err-bg: rgba(239,68,68,0.08);
+  --err-bd: rgba(239,68,68,0.3);
+  --err-tx: #dc2626;
+  --tool-bg: #fafafa;
+  --tool-bg-x: #ffffff;
+  --tool-bd: rgba(0,0,0,0.08);
+  --tool-code: #f4f4f5;
+  --acc-run: #0d9488;
+  --acc-ok: #059669;
+  --acc-warn: #d97706;
+  --acc-err: #dc2626;
+  --pill-run: rgba(13,148,136,0.1);
+  --pill-ok: rgba(5,150,105,0.1);
+  --pill-warn: rgba(217,119,6,0.1);
+  --pill-err: rgba(220,38,38,0.1);
+  --think-bg: rgba(13,148,136,0.06);
+  --think-bd: rgba(13,148,136,0.18);
+  --think-tx: #115e59;
+  --think-lab: #0d9488;
+  --resp-bg: rgba(0,0,0,0.03);
+  --resp-bd: rgba(0,0,0,0.08);
+  --resp-tx: #71717a;
+  --shadow-panel: 0 25px 50px -12px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.06);
+  --shadow-fab: 0 10px 40px -8px var(--primary-glow), 0 8px 16px rgba(0,0,0,0.08);
+  --page: #f6f6f7;
+  --page-text: #18181b;
+  --page-muted: #71717a;
+  --page-card: #ffffff;
+  --page-bd: rgba(0,0,0,0.08);
+}
+.dark {
+  color-scheme: dark;
+  --bg: #0f0f10;
+  --bg-elev: #18181b;
+  --surface: #18181b;
+  --surface-hov: #27272a;
+  --header-bg: #141416;
+  --border: rgba(255,255,255,0.1);
+  --border-strong: rgba(255,255,255,0.18);
+  --text: #fafafa;
+  --text-sec: #d4d4d8;
+  --muted: #a1a1aa;
+  --icon: #e4e4e7;
+  --icon-mut: #a1a1aa;
+  --primary: #14b8a6;
+  --primary-hov: #2dd4bf;
+  --primary-mut: rgba(20,184,166,0.15);
+  --primary-glow: rgba(20,184,166,0.4);
+  --user-bubble: #0f766e;
+  --composer: #1f1f23;
+  --input-bg: #27272a;
+  --ghost-bg: #27272a;
+  --ghost-bd: rgba(255,255,255,0.12);
+  --ghost-hov: #3f3f46;
+  --hover: rgba(255,255,255,0.08);
+  --err-bg: rgba(239,68,68,0.15);
+  --err-bd: rgba(248,113,113,0.4);
+  --err-tx: #fca5a5;
+  --tool-bg: #1c1c1f;
+  --tool-bg-x: #232326;
+  --tool-bd: rgba(255,255,255,0.1);
+  --tool-code: #141416;
+  --acc-run: #14b8a6;
+  --acc-ok: #34d399;
+  --acc-warn: #fbbf24;
+  --acc-err: #f87171;
+  --pill-run: rgba(20,184,166,0.18);
+  --pill-ok: rgba(52,211,153,0.15);
+  --pill-warn: rgba(251,191,36,0.15);
+  --pill-err: rgba(248,113,113,0.15);
+  --think-bg: rgba(20,184,166,0.08);
+  --think-bd: rgba(20,184,166,0.22);
+  --think-tx: #5eead4;
+  --think-lab: #2dd4bf;
+  --resp-bg: rgba(255,255,255,0.04);
+  --resp-bd: rgba(255,255,255,0.12);
+  --resp-tx: #a1a1aa;
+  --shadow-panel: 0 25px 50px -12px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.08);
+  --shadow-fab: 0 10px 40px -8px var(--primary-glow), 0 8px 16px rgba(0,0,0,0.5);
+  --page: #09090b;
+  --page-text: #f4f4f5;
+  --page-muted: #a1a1aa;
+  --page-card: #18181b;
+  --page-bd: rgba(255,255,255,0.08);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--page);
+  color: var(--page-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background .2s ease, color .2s ease;
+}
+.shell { max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px; }
+
+/* ---- header ---- */
+.head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 24px; margin-bottom: 40px; padding-bottom: 28px;
+  border-bottom: 1px solid var(--page-bd);
+}
+.head h1 {
+  margin: 0 0 6px;
+  font-size: clamp(28px, 4vw, 44px); font-weight: 700;
+  letter-spacing: -0.03em; line-height: 1.1;
+}
+.head .tag {
+  display: inline-block; padding: 3px 9px; border-radius: 999px;
+  border: 1px solid var(--page-bd);
+  font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--page-muted); margin-bottom: 14px;
+}
+.head .sub { margin: 6px 0 0; color: var(--page-muted); font-size: 14px; max-width: 56ch; line-height: 1.55; }
+.tabs { display: flex; gap: 4px; padding: 3px; border-radius: 10px; background: var(--page-bd); border: 1px solid var(--page-bd); }
+.tabs button {
+  font: inherit; font-size: 12px; font-weight: 500;
+  border: 0; background: transparent; color: var(--page-muted);
+  padding: 6px 12px; border-radius: 7px; cursor: pointer;
+}
+.tabs button[aria-pressed="true"] {
+  background: var(--page-card); color: var(--page-text);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
+
+/* ---- section ---- */
+section.block { margin-bottom: 56px; }
+section.block > h2 {
+  margin: 0 0 4px; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--page-muted);
+}
+section.block > h2 + p { margin: 0 0 18px; font-size: 18px; font-weight: 500; letter-spacing: -0.01em; }
+
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(12, 1fr); }
+.card {
+  grid-column: span 12;
+  background: var(--page-card);
+  border: 1px solid var(--page-bd);
+  border-radius: 14px;
+  padding: 18px;
+}
+.card.c6 { grid-column: span 6; }
+.card.c4 { grid-column: span 4; }
+.card.c3 { grid-column: span 3; }
+.card.c8 { grid-column: span 8; }
+@media (max-width: 760px) { .card.c6, .card.c4, .card.c3, .card.c8 { grid-column: span 12; } }
+.card h3 {
+  margin: 0 0 12px; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--page-muted);
+}
+.card .note { margin: 12px 0 0; font-size: 11px; color: var(--page-muted); }
+code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+
+/* ---- type specimens ---- */
+.spec-row { display: flex; align-items: baseline; gap: 14px; padding: 6px 0; }
+.spec-row + .spec-row { border-top: 1px dashed var(--page-bd); }
+.spec-row .meta { font-size: 11px; color: var(--page-muted); margin-left: auto; font-family: ui-monospace, monospace; }
+
+/* ---- swatches ---- */
+.sw-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.sw { display: flex; flex-direction: column; gap: 6px; min-width: 96px; }
+.sw .chip { height: 56px; border-radius: 10px; border: 1px solid var(--page-bd); }
+.sw .name { font-size: 12px; font-weight: 600; }
+.sw .hex { font-size: 10px; color: var(--page-muted); font-family: ui-monospace, monospace; }
+
+.scale-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.scale-row .sw .chip { height: 44px; }
+
+/* ---- radius row ---- */
+.rad-row { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; }
+.rad-row .item { text-align: center; }
+.rad-row .box { width: 64px; height: 64px; background: var(--page-bd); }
+.rad-row .lab { font-size: 11px; margin-top: 6px; font-weight: 600; }
+.rad-row .sub { font-size: 10px; color: var(--page-muted); }
+
+/* ---- shadow row ---- */
+.shadow-row { display: flex; gap: 32px; align-items: center; flex-wrap: wrap; padding: 8px 0; }
+.shadow-row .item { text-align: center; }
+.shadow-row .lab { font-size: 11px; margin-top: 14px; font-weight: 600; }
+.shadow-row .sub { font-size: 10px; color: var(--page-muted); font-family: ui-monospace, monospace; }
+
+/* ============= Component recreations (use .cb namespace) ============= */
+.cb { font-family: "Inter", system-ui, sans-serif; font-size: 14px; line-height: 1.5; color: var(--text); }
+
+/* FAB */
+.cb-fab {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 56px; height: 56px; border: 0; border-radius: 999px;
+  background: var(--primary); color: var(--primary-fg);
+  box-shadow: var(--shadow-fab); cursor: pointer;
+  transition: all .2s ease;
+}
+.cb-fab:hover { background: var(--primary-hov); transform: translateY(-2px); }
+
+/* Header */
+.cb-header {
+  display: flex; align-items: center; gap: 14px;
+  min-height: 60px; padding: 10px 16px;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border);
+  border-radius: 16px 16px 0 0;
+}
+.cb-avatar {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--primary-mut); color: var(--primary);
+  box-shadow: inset 0 0 0 1px rgba(139,92,246,0.2);
+}
+.cb-h-text { flex: 1; min-width: 0; padding-right: 8px; margin-left: 2px; }
+.cb-h-title { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); line-height: 1.3; }
+.cb-h-sub { display: flex; align-items: center; gap: 6px; margin: 2px 0 0; font-size: 11px; color: var(--muted); }
+.cb-dot { width: 6px; height: 6px; border-radius: 999px; background: #22c55e; box-shadow: 0 0 0 2px rgba(34,197,94,0.25); }
+.cb-tbar {
+  display: flex; align-items: center; gap: 2px; flex-shrink: 0;
+  padding: 4px; border-radius: 12px;
+  border: 1px solid var(--ghost-bd); background: var(--ghost-bg);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+.cb-ghost {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--icon); cursor: pointer;
+  transition: all .15s ease;
+}
+.cb-ghost:hover { background: var(--ghost-hov); color: var(--text); }
+.cb-ghost.danger:hover { color: var(--err-tx); background: var(--err-bg); }
+
+/* Messages */
+.cb-msgs {
+  background: var(--bg); padding: 14px;
+  display: flex; flex-direction: column; gap: 12px;
+  min-height: 280px;
+}
+.cb-row-user { display: flex; justify-content: flex-end; }
+.cb-user {
+  background: var(--user-bubble); color: #fff;
+  padding: 6px 12px; border-radius: 18px; border-bottom-right-radius: 4px;
+  font-size: 13px; line-height: 1.45; max-width: 75%;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+}
+.cb-turn { display: flex; align-items: flex-start; gap: 8px; }
+.cb-bot {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; flex-shrink: 0; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--ghost-bg); color: var(--primary);
+}
+.cb-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
+.cb-prose { font-size: 14px; line-height: 1.5; color: var(--text); }
+.cb-prose strong { font-weight: 600; }
+
+/* Tool card */
+.cb-tool {
+  overflow: hidden; border-radius: 8px;
+  border: 1px solid var(--tool-bd); background: var(--tool-bg);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+.cb-tool.running {
+  border-color: color-mix(in srgb, var(--acc-run) 35%, var(--tool-bd));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--acc-run) 20%, transparent);
+}
+.cb-tool-h {
+  display: flex; width: 100%; align-items: center; gap: 7px;
+  padding: 5px 7px 5px 6px; min-height: 30px;
+  background: transparent; border: 0; cursor: pointer; text-align: left;
+}
+.cb-tool-ico {
+  display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; flex-shrink: 0; border-radius: 6px;
+  background: var(--primary-mut); color: var(--primary);
+}
+.cb-tool.done .cb-tool-ico { background: var(--pill-ok); color: var(--acc-ok); }
+.cb-tool.approval .cb-tool-ico { background: var(--pill-warn); color: var(--acc-warn); }
+.cb-tool.error .cb-tool-ico, .cb-tool.denied .cb-tool-ico { background: var(--pill-err); color: var(--acc-err); }
+.cb-tool-meta { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 1px; }
+.cb-tool-eye { font-size: 9px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); line-height: 1.1; }
+.cb-tool-name { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.2; }
+.cb-pill {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 6px; border-radius: 999px;
+  font-size: 9px; font-weight: 600; letter-spacing: 0.02em; line-height: 1;
+}
+.cb-tool.running .cb-pill { background: var(--pill-run); color: var(--acc-run); }
+.cb-tool.done .cb-pill { background: var(--pill-ok); color: var(--acc-ok); }
+.cb-tool.approval .cb-pill { background: var(--pill-warn); color: var(--acc-warn); }
+.cb-tool.error .cb-pill, .cb-tool.denied .cb-pill { background: var(--pill-err); color: var(--acc-err); }
+.cb-chev { flex-shrink: 0; color: var(--icon-mut); transition: transform .2s; }
+.cb-tool[data-open="true"] .cb-chev { transform: rotate(90deg); }
+.cb-tool-body {
+  border-top: 1px solid var(--tool-bd); background: var(--tool-bg-x);
+  padding: 8px; display: flex; flex-direction: column; gap: 8px;
+}
+.cb-code-blk {
+  border-radius: 6px; border: 1px solid var(--tool-bd);
+  background: var(--tool-code); overflow: hidden;
+}
+.cb-code-lab {
+  padding: 4px 8px; border-bottom: 1px solid var(--tool-bd);
+  font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--muted);
+}
+.cb-code-blk pre {
+  margin: 0; padding: 7px 8px;
+  font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px; line-height: 1.5; color: var(--text-sec);
+  white-space: pre-wrap; word-break: break-word;
+}
+.cb-appr {
+  border-radius: 6px;
+  border: 1px dashed color-mix(in srgb, var(--acc-warn) 45%, var(--tool-bd));
+  background: var(--pill-warn);
+  padding: 8px;
+}
+.cb-appr-t { margin: 0 0 3px; font-size: 11px; font-weight: 600; color: var(--text); }
+.cb-appr-d { margin: 0 0 8px; font-size: 10px; line-height: 1.45; color: var(--text-sec); }
+.cb-appr-a { display: flex; gap: 6px; }
+.cb-appr-a button { flex: 1; padding: 6px 8px; font: inherit; font-size: 11px; font-weight: 600; border-radius: 6px; cursor: pointer; font-family: inherit; }
+.cb-btn-ok { border: 0; background: var(--primary); color: var(--primary-fg); }
+.cb-btn-no { border: 1px solid var(--tool-bd); background: transparent; color: var(--text); }
+
+/* Thinking + Response */
+.cb-think, .cb-resp { overflow: hidden; border-radius: 12px; }
+.cb-think { border: 1px solid var(--think-bd); background: var(--think-bg); }
+.cb-resp { border: 1px solid var(--resp-bd); background: var(--resp-bg); }
+.cb-think-h, .cb-resp-h {
+  display: flex; align-items: center; gap: 6px; width: 100%;
+  padding: 8px 12px;
+  border: 0; background: transparent; cursor: pointer; text-align: left;
+  font: inherit; color: inherit;
+}
+.cb-think[data-open="true"] .cb-think-h { border-bottom: 1px solid var(--think-bd); }
+.cb-resp[data-open="true"] .cb-resp-h { border-bottom: 1px solid var(--resp-bd); }
+.cb-think-lab { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--think-lab); }
+.cb-resp-lab { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-sec); }
+.cb-prev { min-width: 0; flex: 1; margin-left: 4px; font-size: 11px; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.85; }
+.cb-think .cb-prev { color: var(--think-tx); }
+.cb-resp .cb-prev { color: var(--resp-tx); opacity: 0.75; }
+.cb-think-body, .cb-resp-body { padding: 10px 12px 12px; }
+.cb-think-tx { margin: 0; font-size: 13px; line-height: 1.55; font-style: italic; color: var(--think-tx); }
+
+.cb-dots { display: inline-flex; gap: 3px; margin-left: 4px; }
+.cb-dots span { width: 4px; height: 4px; border-radius: 999px; background: currentColor; animation: dot 1.2s ease-in-out infinite; }
+.cb-dots span:nth-child(2) { animation-delay: 0.15s; }
+.cb-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes dot { 0%, 80%, 100% { opacity: 0.35; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-2px); } }
+
+/* Composer */
+.cb-comp {
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding: 12px; border-radius: 0 0 16px 16px;
+}
+.cb-comp-shell {
+  border: 1px solid var(--border); background: var(--composer);
+  border-radius: 20px; padding: 8px;
+  display: flex; align-items: flex-end; gap: 4px;
+}
+.cb-comp-shell:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-mut); }
+.cb-comp-attach, .cb-comp-send {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; flex-shrink: 0; margin: 0 2px 2px 2px;
+  border: 0; border-radius: 999px; cursor: pointer; transition: all .15s ease;
+}
+.cb-comp-attach { background: transparent; color: var(--muted); }
+.cb-comp-attach:hover { background: var(--hover); color: var(--text); }
+.cb-comp-send { background: var(--primary); color: var(--primary-fg); }
+.cb-comp-send:hover { background: var(--primary-hov); }
+.cb-comp-input {
+  flex: 1; min-height: 36px; max-height: 120px; resize: none;
+  border: 0; background: transparent;
+  padding: 8px 4px; font: inherit; font-size: 13px; line-height: 1.45;
+  color: var(--text); outline: none;
+}
+.cb-comp-input::placeholder { color: var(--muted); }
+.cb-comp-foot { margin: 8px 0 0; text-align: center; font-size: 10px; color: var(--muted); }
+
+/* Panel wrap (for live preview) */
+.cb-panel {
+  width: 100%; max-width: 420px;
+  background: var(--bg);
+  border-radius: 16px;
+  box-shadow: var(--shadow-panel);
+  border: 1px solid var(--border-strong);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+
+/* Empty state */
+.cb-empty {
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+  padding: 28px 12px;
+}
+.cb-empty-i {
+  display: flex; align-items: center; justify-content: center;
+  width: 48px; height: 48px; border-radius: 14px;
+  background: var(--primary-mut); color: var(--primary);
+}
+.cb-empty h4 { margin: 0; font-size: 15px; font-weight: 500; color: var(--text); }
+.cb-empty p { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+.cb-sugg { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 240px; }
+.cb-sugg button {
+  text-align: left; padding: 8px 12px; font: inherit;
+  border-radius: 8px; border: 1px solid var(--border);
+  background: var(--ghost-bg); font-size: 12px; color: var(--text-sec);
+  cursor: pointer; font-family: inherit;
+}
+.cb-sugg button:hover { background: var(--ghost-hov); color: var(--text); border-color: var(--border-strong); }
+
+/* Icon grid */
+.icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 12px; }
+.icons .i {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 10px 4px; border-radius: 8px;
+  color: var(--page-text); background: var(--page-bd);
+}
+.icons .i span { font-size: 10px; color: var(--page-muted); }
+
+/* small ico class for inline lucide-style SVGs */
+.ico { stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+/* footer */
+.foot { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--page-bd); font-size: 11px; color: var(--page-muted); }
+.foot a { color: var(--page-muted); text-decoration: underline; }
+</style>
+</head>
+<body class="dark">
+<div class="shell">
+
+  <header class="head">
+    <div>
+      <span class="tag">Design System · benamaraissam/chatbot</span>
+      <h1>Chatbot React</h1>
+      <p class="sub">Tokens, type, icons, and the floating + embedded chat surfaces — distilled from <code>chatbot-react-library/</code> into a single page.</p>
+    </div>
+    <div class="tabs" role="group" aria-label="Theme">
+      <button data-theme="light" aria-pressed="false">Light</button>
+      <button data-theme="dark" aria-pressed="true">Dark</button>
+    </div>
+  </header>
+
+  <!-- ============ TYPE ============ -->
+  <section class="block" id="type">
+    <h2>01 · Type</h2>
+    <p>Inter (400/500/600/700) + ui-monospace. Dense scale — 14px base on <code>.cb</code> root.</p>
+    <div class="grid">
+      <div class="card c8">
+        <h3>Scale specimens</h3>
+        <div class="spec-row"><span style="font-size:36px;font-weight:700;letter-spacing:-0.03em;line-height:1.1;">Chatbot component demo</span><span class="meta">36 · 700 · -0.03em · hero</span></div>
+        <div class="spec-row"><span style="font-size:15px;font-weight:600;letter-spacing:-0.01em;">Assistant</span><span class="meta">15 · 600 · header title</span></div>
+        <div class="spec-row"><span style="font-size:14px;font-weight:400;">Ask anything — answers stream in real time.</span><span class="meta">14 · 400 · body</span></div>
+        <div class="spec-row"><span style="font-size:13px;font-weight:400;">What's the weather in Paris?</span><span class="meta">13 · 400 · bubble + composer</span></div>
+        <div class="spec-row"><span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--think-lab);">Thinking</span><span class="meta">11 · 600 · 0.08em · eyebrow</span></div>
+        <div class="spec-row"><span style="font-size:9px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);">Tool · Parameters</span><span class="meta">9 · 600 · 0.06em · tool eyebrow</span></div>
+      </div>
+      <div class="card c4">
+        <h3>Weights</h3>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div><div style="font-weight:400;font-size:16px;">Regular</div><div class="mono" style="font-size:10px; color: var(--page-muted);">400 · body</div></div>
+          <div><div style="font-weight:500;font-size:16px;">Medium</div><div class="mono" style="font-size:10px; color: var(--page-muted);">500 · chips</div></div>
+          <div><div style="font-weight:600;font-size:16px;">Semibold</div><div class="mono" style="font-size:10px; color: var(--page-muted);">600 · titles, pills</div></div>
+          <div><div style="font-weight:700;font-size:16px;">Bold</div><div class="mono" style="font-size:10px; color: var(--page-muted);">700 · hero only</div></div>
+        </div>
+        <div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--page-bd);">
+          <code style="font-size: 12px;">{ "city": "Paris" }</code>
+          <div class="mono" style="font-size:10px; color:var(--page-muted); margin-top:4px;">ui-monospace · code blocks</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COLORS ============ -->
+  <section class="block" id="colors">
+    <h2>02 · Colors</h2>
+    <p>Two themes, every color a CSS var. Toggle the theme top-right to compare.</p>
+
+    <div class="grid">
+      <div class="card c6">
+        <h3>Primary · curated</h3>
+        <div class="sw-row">
+          <div class="sw"><div class="chip" style="background: linear-gradient(135deg, #0d9488, #2563eb);"></div><div class="name">Default</div><div class="hex">teal+blue</div></div>
+          <div class="sw"><div class="chip" style="background: #7c3aed;"></div><div class="name">Violet</div><div class="hex">#7c3aed</div></div>
+          <div class="sw"><div class="chip" style="background: #2563eb;"></div><div class="name">Blue</div><div class="hex">#2563eb</div></div>
+          <div class="sw"><div class="chip" style="background: #0d9488;"></div><div class="name">Teal</div><div class="hex">#0d9488</div></div>
+          <div class="sw"><div class="chip" style="background: #e11d48;"></div><div class="name">Rose</div><div class="hex">#e11d48</div></div>
+        </div>
+        <p class="note">Consumers override <code>primaryColor</code> on <code>ChatbotProvider</code>; the swatch tints panel border, FAB glow, status pills.</p>
+      </div>
+
+      <div class="card c6">
+        <h3>Status accents</h3>
+        <div class="scale-row">
+          <div class="sw"><div class="chip" style="background: var(--pill-run); color: var(--acc-run); display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;">Running</div><div class="hex">var(--acc-run)</div></div>
+          <div class="sw"><div class="chip" style="background: var(--pill-ok); color: var(--acc-ok); display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;">Done</div><div class="hex">var(--acc-ok)</div></div>
+          <div class="sw"><div class="chip" style="background: var(--pill-warn); color: var(--acc-warn); display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;">Review</div><div class="hex">var(--acc-warn)</div></div>
+          <div class="sw"><div class="chip" style="background: var(--pill-err); color: var(--acc-err); display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;">Failed</div><div class="hex">var(--acc-err)</div></div>
+          <div class="sw"><div class="chip" style="background: var(--pill-err); color: var(--acc-err); display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;">Denied</div><div class="hex">var(--acc-err)</div></div>
+        </div>
+        <p class="note">Each accent ships a paired <code>--pill-*-bg</code> tint at ~10–18% opacity for soft fills.</p>
+      </div>
+
+      <div class="card c12" style="grid-column: span 12;">
+        <h3>Neutrals · live (driven by theme above)</h3>
+        <div class="scale-row" style="grid-template-columns: repeat(8, 1fr);">
+          <div class="sw"><div class="chip" style="background: var(--bg);"></div><div class="name">bg</div><div class="hex">--bg</div></div>
+          <div class="sw"><div class="chip" style="background: var(--bg-elev);"></div><div class="name">elev</div><div class="hex">--bg-elev</div></div>
+          <div class="sw"><div class="chip" style="background: var(--surface-hov);"></div><div class="name">surface-hov</div><div class="hex">--surface-hov</div></div>
+          <div class="sw"><div class="chip" style="background: var(--input-bg);"></div><div class="name">input</div><div class="hex">--input-bg</div></div>
+          <div class="sw"><div class="chip" style="background: var(--header-bg);"></div><div class="name">header</div><div class="hex">--header-bg</div></div>
+          <div class="sw"><div class="chip" style="background: var(--muted);"></div><div class="name">muted</div><div class="hex">--muted</div></div>
+          <div class="sw"><div class="chip" style="background: var(--text-sec);"></div><div class="name">text-sec</div><div class="hex">--text-sec</div></div>
+          <div class="sw"><div class="chip" style="background: var(--text);"></div><div class="name">text</div><div class="hex">--text</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOUNDATIONS ============ -->
+  <section class="block" id="found">
+    <h2>03 · Foundations</h2>
+    <p>Radii, shadows, motion.</p>
+    <div class="grid">
+      <div class="card c6">
+        <h3>Radii</h3>
+        <div class="rad-row">
+          <div class="item"><div class="box" style="width:48px;height:48px;border-radius:6px;"></div><div class="lab">6</div><div class="sub">ghost btn</div></div>
+          <div class="item"><div class="box" style="width:48px;height:48px;border-radius:8px;"></div><div class="lab">8</div><div class="sub">tool card</div></div>
+          <div class="item"><div class="box" style="width:48px;height:48px;border-radius:12px;"></div><div class="lab">12</div><div class="sub">thinking</div></div>
+          <div class="item"><div class="box" style="width:48px;height:48px;border-radius:18px;"></div><div class="lab">18</div><div class="sub">bubble</div></div>
+          <div class="item"><div class="box" style="width:48px;height:48px;border-radius:20px;"></div><div class="lab">20</div><div class="sub">panel</div></div>
+          <div class="item"><div class="box" style="width:48px;height:48px;border-radius:999px;background: var(--primary);"></div><div class="lab">full</div><div class="sub">FAB, pills</div></div>
+        </div>
+      </div>
+
+      <div class="card c6">
+        <h3>Shadows</h3>
+        <div class="shadow-row">
+          <div class="item">
+            <div style="width:110px;height:70px;background:var(--bg);border-radius:12px;border:1px solid var(--border);box-shadow: var(--shadow-panel);"></div>
+            <div class="lab">--shadow-panel</div>
+            <div class="sub">0 25 50 -12 / 0.15</div>
+          </div>
+          <div class="item">
+            <div style="width:50px;height:50px;border-radius:999px;background:var(--primary);box-shadow: var(--shadow-fab); margin: 0 auto;"></div>
+            <div class="lab">--shadow-fab</div>
+            <div class="sub">primary-glow halo</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card c12" style="grid-column: span 12;">
+        <h3>Motion</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center;">
+          <div>
+            <div style="font-size: 13px; font-weight: 600; margin-bottom: 6px;">cubic-bezier(0.4, 0, 0.2, 1)</div>
+            <svg width="100%" height="60" viewBox="0 0 280 60" preserveAspectRatio="xMidYMid meet">
+              <path d="M 10,50 C 10,50 60,50 100,30 C 140,10 230,10 270,10" stroke="var(--primary)" stroke-width="2.5" fill="none" />
+              <circle cx="10" cy="50" r="3" fill="var(--primary)"/>
+              <circle cx="270" cy="10" r="3" fill="var(--primary)"/>
+            </svg>
+            <p class="note">Material standard · panel resize, sidebar collapse, layout changes.</p>
+          </div>
+          <div>
+            <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Durations</div>
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px;">
+              <div><b class="mono">150ms</b> — hover, focus, color</div>
+              <div><b class="mono">200ms</b> — transforms, chevron rotate</div>
+              <div><b class="mono">280ms</b> — sidebar collapse width</div>
+              <div><b class="mono">320ms</b> — panel wide reflow</div>
+            </div>
+            <p class="note">Press: <code>scale(0.96–0.98)</code> · FAB hover: <code>translateY(-2px)</code> · Tool-card running header shimmers <code>2s</code></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COMPONENTS (live) ============ -->
+  <section class="block" id="components">
+    <h2>04 · Components · live</h2>
+    <p>Real recreations — toggle theme to see them adapt.</p>
+
+    <div class="grid">
+
+      <!-- FAB -->
+      <div class="card c4">
+        <h3>Floating button</h3>
+        <div class="cb" style="display:flex; gap:24px; padding: 14px 0; align-items: center;">
+          <button class="cb-fab" aria-label="Open chat">
+            <svg class="ico" width="22" height="22" viewBox="0 0 24 24" style="stroke-width:2.25"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+          </button>
+          <div style="font-size: 11px; color: var(--page-muted);">56×56 · primary fill · radial glow shadow tinted by --primary-glow</div>
+        </div>
+      </div>
+
+      <!-- Header -->
+      <div class="card c8">
+        <h3>Chat header</h3>
+        <div class="cb" style="border: 1px solid var(--page-bd); border-radius: 16px; overflow: hidden;">
+          <header class="cb-header" style="border-radius: 16px 16px 0 0;">
+            <div class="cb-avatar">
+              <svg class="ico" width="18" height="18" viewBox="0 0 24 24" style="stroke-width:2.25"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+            </div>
+            <div class="cb-h-text">
+              <h4 class="cb-h-title">Assistant</h4>
+              <div class="cb-h-sub"><span class="cb-dot"></span> Online · Ready to chat</div>
+            </div>
+            <div class="cb-tbar">
+              <button class="cb-ghost" title="Theme"><svg class="ico" width="17" height="17" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></button>
+              <button class="cb-ghost danger" title="Clear"><svg class="ico" width="17" height="17" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+              <button class="cb-ghost" title="Close"><svg class="ico" width="17" height="17" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+            </div>
+          </header>
+        </div>
+      </div>
+
+      <!-- Status pills -->
+      <div class="card c6">
+        <h3>Status pills</h3>
+        <div class="cb" style="display: flex; gap: 8px; flex-wrap: wrap; padding: 6px 0 14px;">
+          <span class="cb-pill" style="background: var(--pill-run); color: var(--acc-run);">
+            <svg class="ico" width="10" height="10" viewBox="0 0 24 24" style="stroke-width:2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Running
+          </span>
+          <span class="cb-pill" style="background: var(--pill-ok); color: var(--acc-ok);">
+            <svg class="ico" width="10" height="10" viewBox="0 0 24 24" style="stroke-width:2.5"><path d="M20 6 9 17l-5-5"/></svg> Done
+          </span>
+          <span class="cb-pill" style="background: var(--pill-warn); color: var(--acc-warn);">
+            <svg class="ico" width="10" height="10" viewBox="0 0 24 24" style="stroke-width:2.5"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg> Review
+          </span>
+          <span class="cb-pill" style="background: var(--pill-err); color: var(--acc-err);">
+            <svg class="ico" width="10" height="10" viewBox="0 0 24 24" style="stroke-width:2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/></svg> Failed
+          </span>
+          <span class="cb-pill" style="background: var(--pill-err); color: var(--acc-err);">
+            <svg class="ico" width="10" height="10" viewBox="0 0 24 24" style="stroke-width:2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/></svg> Denied
+          </span>
+        </div>
+        <div class="cb" style="display: flex; align-items: center; gap: 14px; padding-top: 12px; border-top: 1px dashed var(--page-bd);">
+          <div class="cb-bot"><svg class="ico" width="14" height="14" viewBox="0 0 24 24" style="stroke-width:2.25"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg></div>
+          <div class="cb-dots" style="color: var(--primary);"><span></span><span></span><span></span></div>
+          <span style="font-size: 11px; color: var(--page-muted);">3-dot loader · staggered 150ms</span>
+        </div>
+      </div>
+
+      <!-- Tool cards -->
+      <div class="card c6">
+        <h3>Tool call card · states</h3>
+        <div class="cb" style="display: flex; flex-direction: column; gap: 6px;">
+          <article class="cb-tool running" data-open="false">
+            <div class="cb-tool-h">
+              <div class="cb-tool-ico"><svg class="ico" width="14" height="14" viewBox="0 0 24 24" style="stroke-width:2.25"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg></div>
+              <div class="cb-tool-meta"><span class="cb-tool-eye">Tool</span><span class="cb-tool-name">Get weather</span></div>
+              <span class="cb-pill"><svg class="ico" width="10" height="10" viewBox="0 0 24 24" style="stroke-width:2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>Running</span>
+              <svg class="ico cb-chev" width="14" height="14" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+          </article>
+          <article class="cb-tool done">
+            <div class="cb-tool-h">
+              <div class="cb-tool-ico"><svg class="ico" width="14" height="14" viewBox="0 0 24 24" style="stroke-width:2.25"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div>
+              <div class="cb-tool-meta"><span class="cb-tool-eye">Tool</span><span class="cb-tool-name">Search docs</span></div>
+              <span class="cb-pill"><svg class="ico" width="10" height="10" viewBox="0 0 24 24" style="stroke-width:2.5"><path d="M20 6 9 17l-5-5"/></svg>Done</span>
+              <svg class="ico cb-chev" width="14" height="14" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+          </article>
+          <article class="cb-tool error">
+            <div class="cb-tool-h">
+              <div class="cb-tool-ico"><svg class="ico" width="14" height="14" viewBox="0 0 24 24" style="stroke-width:2.25"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
+              <div class="cb-tool-meta"><span class="cb-tool-eye">Tool</span><span class="cb-tool-name">Simulate failure</span></div>
+              <span class="cb-pill"><svg class="ico" width="10" height="10" viewBox="0 0 24 24" style="stroke-width:2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/></svg>Failed</span>
+              <svg class="ico cb-chev" width="14" height="14" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <!-- Approval card expanded -->
+      <div class="card c6">
+        <h3>Tool · approval expanded</h3>
+        <div class="cb">
+          <article class="cb-tool approval" data-open="true">
+            <div class="cb-tool-h">
+              <div class="cb-tool-ico"><svg class="ico" width="14" height="14" viewBox="0 0 24 24" style="stroke-width:2.25"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></div>
+              <div class="cb-tool-meta"><span class="cb-tool-eye">Tool</span><span class="cb-tool-name">Send email</span></div>
+              <span class="cb-pill"><svg class="ico" width="10" height="10" viewBox="0 0 24 24" style="stroke-width:2.5"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>Review</span>
+              <svg class="ico cb-chev" width="14" height="14" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+            <div class="cb-tool-body">
+              <div class="cb-code-blk">
+                <div class="cb-code-lab">Parameters</div>
+                <pre>{
+  "to": "<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="156170747855677c637a797c3b747c">[email&#160;protected]</a>",
+  "subject": "Approval needed"
+}</pre>
+              </div>
+              <div class="cb-appr">
+                <p class="cb-appr-t">Allow this action?</p>
+                <p class="cb-appr-d">The assistant wants to run <strong>Send email</strong>. Approve only if you trust this operation.</p>
+                <div class="cb-appr-a">
+                  <button class="cb-btn-ok">Approve</button>
+                  <button class="cb-btn-no">Deny</button>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <!-- Thinking + response -->
+      <div class="card c6">
+        <h3>Thinking · Response</h3>
+        <div class="cb" style="display:flex; flex-direction: column; gap: 8px;">
+          <div class="cb-think" data-open="true">
+            <div class="cb-think-h">
+              <svg class="ico" width="14" height="14" viewBox="0 0 24 24" style="color: var(--think-lab)"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.3 4.4-3 5.5V17H8v-2.5C6.3 13.4 5 11.4 5 9a7 7 0 0 1 7-7Z"/></svg>
+              <span class="cb-think-lab">Thinking</span>
+              <span class="cb-dots" style="color: var(--think-lab);"><span></span><span></span><span></span></span>
+              <svg class="ico cb-chev" width="14" height="14" viewBox="0 0 24 24" style="margin-left:auto; color: var(--icon-mut)"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+            <div class="cb-think-body">
+              <p class="cb-think-tx">Parsing the user's question. I'll call get_weather with city="Paris" and metric units, then format the result…</p>
+            </div>
+          </div>
+          <div class="cb-resp">
+            <div class="cb-resp-h">
+              <svg class="ico" width="14" height="14" viewBox="0 0 24 24" style="color: var(--text-sec)"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span class="cb-resp-lab">Response</span>
+              <span class="cb-prev">Paris is currently 13°C and partly cloudy…</span>
+              <svg class="ico cb-chev" width="14" height="14" viewBox="0 0 24 24" style="margin-left:auto; color: var(--icon-mut)"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVE PANEL preview -->
+      <div class="card c12" style="grid-column: span 12;">
+        <h3>Full panel</h3>
+        <div class="cb" style="display:flex; justify-content:center; padding: 14px 0;">
+          <div class="cb-panel">
+            <header class="cb-header">
+              <div class="cb-avatar">
+                <svg class="ico" width="18" height="18" viewBox="0 0 24 24" style="stroke-width:2.25"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+              </div>
+              <div class="cb-h-text">
+                <h4 class="cb-h-title">Assistant</h4>
+                <div class="cb-h-sub"><span class="cb-dot"></span> Online · Ready to chat</div>
+              </div>
+              <div class="cb-tbar">
+                <button class="cb-ghost"><svg class="ico" width="17" height="17" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></button>
+                <button class="cb-ghost danger"><svg class="ico" width="17" height="17" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                <button class="cb-ghost"><svg class="ico" width="17" height="17" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+              </div>
+            </header>
+            <div class="cb-msgs">
+              <div class="cb-row-user"><div class="cb-user">What's the weather in Paris right now?</div></div>
+              <div class="cb-turn">
+                <div class="cb-bot"><svg class="ico" width="14" height="14" viewBox="0 0 24 24" style="stroke-width:2.25"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg></div>
+                <div class="cb-body">
+                  <article class="cb-tool done" data-open="false">
+                    <div class="cb-tool-h">
+                      <div class="cb-tool-ico"><svg class="ico" width="14" height="14" viewBox="0 0 24 24" style="stroke-width:2.25"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg></div>
+                      <div class="cb-tool-meta"><span class="cb-tool-eye">Tool</span><span class="cb-tool-name">Get weather</span></div>
+                      <span class="cb-pill"><svg class="ico" width="10" height="10" viewBox="0 0 24 24" style="stroke-width:2.5"><path d="M20 6 9 17l-5-5"/></svg>Done</span>
+                      <svg class="ico cb-chev" width="14" height="14" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                    </div>
+                  </article>
+                  <div class="cb-prose">Paris is currently <strong>13°C</strong> and partly cloudy, with a light westerly breeze. Expect highs near <strong>16°C</strong> this afternoon.</div>
+                </div>
+              </div>
+            </div>
+            <div class="cb-comp">
+              <div class="cb-comp-shell">
+                <button class="cb-comp-attach"><svg class="ico" width="18" height="18" viewBox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
+                <textarea class="cb-comp-input" placeholder="Message…" rows="1"></textarea>
+                <button class="cb-comp-send"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" style="stroke-width:2.5"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg></button>
+              </div>
+              <p class="cb-comp-foot">Enter to send · Shift+Enter for new line · Attach images or files</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ ICONS ============ -->
+  <section class="block" id="icons">
+    <h2>05 · Iconography</h2>
+    <p>Lucide exclusively. Stroke-only, <code>currentColor</code>, no emoji, no PNG.</p>
+    <div class="card">
+      <h3>Most-used glyphs</h3>
+      <div class="icons">
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24" style="stroke-width:2.25"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg><span>Bot</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg><span>Sun</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><span>Moon</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span>Trash2</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg><span>X</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg><span>Paperclip</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg><span>ArrowUp</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="1"/></svg><span>Square</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg><span>Sparkles</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg><span>Chevron</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span>Loader</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg><span>Check</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><span>Alert</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg><span>Shield</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg><span>Zap*</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><span>Search</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span>Mail</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg><span>CloudSun</span></div>
+        <div class="i"><svg class="ico" width="22" height="22" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Message</span></div>
+      </div>
+      <p class="note">Stroke widths: <code>2</code> default · <code>2.25</code> bot avatar &amp; tool icons · <code>2.5</code> send arrow. Sizes: 10 (pill) · 14 (tool, chevron) · 17 (header) · 18 (bot, attach) · 22 (sparkles). *Zap is the fallback when a tool name has no explicit icon mapping.</p>
+    </div>
+  </section>
+
+  <footer class="foot">
+    Distilled from <a href="https://github.com/benamaraissam/chatbot" target="_blank">benamaraissam/chatbot</a> · chatbot-react-library subtree, main branch · MIT. Single-file overview — no JS framework, no external CSS, only Inter is loaded from Google Fonts.
+  </footer>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// Theme toggle — toggles .dark/.light on body
+const buttons = document.querySelectorAll('.tabs button');
+buttons.forEach(b => b.addEventListener('click', () => {
+  const t = b.dataset.theme;
+  document.body.classList.toggle('dark', t === 'dark');
+  document.body.classList.toggle('light', t === 'light');
+  buttons.forEach(x => x.setAttribute('aria-pressed', x.dataset.theme === t ? 'true' : 'false'));
+}));
+
+// Toggle tool / thinking cards on click
+document.querySelectorAll('.cb-tool-h, .cb-think-h, .cb-resp-h').forEach(h => {
+  h.addEventListener('click', () => {
+    const card = h.closest('.cb-tool, .cb-think, .cb-resp');
+    if (!card) return;
+    const isOpen = card.getAttribute('data-open') === 'true';
+    card.setAttribute('data-open', isOpen ? 'false' : 'true');
+  });
+});
+</script>
+</body>
+</html>
