@@ -1,40 +1,69 @@
-# ChatBot
+# Chatbot Suite
 
-Deux librairies indépendantes, conformes au [plan d'architecture](PLAN.md) :
+A portable React (or Angular) embeddable chatbot UI talking to a
+framework-agnostic Python backend over a stable HTTP + SSE protocol.
 
-| Dossier | Description |
-|---------|-------------|
-| [`chatbot-python-library/`](chatbot-python-library/) | Backend Python framework-agnostic (FastAPI, Flask, Django…) |
-| [`chatbot-react-library/`](chatbot-react-library/) | Composants React embeddables (floating chat, SSE streaming) |
+This monorepo holds three independently-versioned libraries that share one
+wire protocol and one design system.
 
-Chaque dossier est un projet autonome avec son propre `package.json` / `pyproject.toml`, versioning et publication (npm / PyPI).
+| Library | Folder | Package | Stack |
+|---|---|---|---|
+| Backend | [`chatbot-python-library/`](chatbot-python-library/) | PyPI · `chatbot` | Python 3.11+, FastAPI / Flask / Django / Starlette adapters |
+| React | [`chatbot-react-library/`](chatbot-react-library/) | npm · `chatbot-react` | React 17/18, Vite, Tailwind |
+| Angular | [`chatbot-angular-library/`](chatbot-angular-library/) | npm · `chatbot-angular` | Angular 17, standalone components |
 
-## Installation & publication
+## 5-minute quickstart
 
-| Package | Install (public) | Install (local) | Publish |
-|---------|------------------|-----------------|---------|
-| React (`chatbot-react`) | `npm install chatbot-react` | `npm link`, `file:../…`, or `npm pack` | [React README — Publish to npm](chatbot-react-library/README.md#publish-to-npm-public-registry) |
-| Python (`chatbot`) | `pip install chatbot` | `pip install -e ".[fastapi]"` | [Python README — Publish to PyPI](chatbot-python-library/README.md#publish-to-pypi-public) |
-
-Details, peer dependencies, and troubleshooting are in each library README.
-
-## Démarrage rapide
-
-**Backend Python** (`chatbot-python-library/`)
+**Backend** — pick any one of FastAPI / Flask / Django / Starlette, or run the standalone server:
 
 ```bash
 cd chatbot-python-library
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[fastapi]"
-pytest tests/ -v
+export ANTHROPIC_API_KEY=sk-ant-...
 chatbot serve --config config.yaml.example --port 8000
 ```
 
-**Lib React** (`chatbot-react-library/`)
+**React frontend**:
 
 ```bash
-cd chatbot-react-library
-npm install
-npm run build
-npm run dev   # demo → http://localhost:5173
+cd chatbot-react-library && npm install && npm run dev   # http://localhost:5173
 ```
+
+**Angular frontend** (alternative):
+
+```bash
+cd chatbot-angular-library && npm install && npm run demo   # http://localhost:4200
+```
+
+## Documentation
+
+The full documentation lives in [`docs/`](docs/):
+
+- [Overview & reading order](docs/README.md)
+- [Architecture](docs/architecture.md)
+- [Getting started](docs/getting-started.md)
+- [Wire protocol](docs/wire-protocol.md)
+- [Python backend guide](docs/libraries/python.md)
+- [React library guide](docs/libraries/react.md)
+- [Angular library guide](docs/libraries/angular.md)
+- [Testing](docs/development/testing.md) · [CI / CD](docs/development/ci-cd.md) · [Claude in development](docs/development/claude.md)
+- [Contributing](docs/contributing.md)
+- [Phased roadmap](docs/PLAN.md)
+
+## Tests + coverage
+
+A single command runs the test matrix across all three libraries and writes
+a consolidated HTML + Markdown report:
+
+```bash
+make -C coverage coverage   # all three
+make -C coverage open       # open coverage/report.html
+make -C coverage help       # list all targets
+```
+
+See [`docs/development/testing.md`](docs/development/testing.md) for details.
+
+## License
+
+MIT — see each library's `pyproject.toml` / `package.json` for the canonical declaration.

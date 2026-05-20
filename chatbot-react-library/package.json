@@ -25,7 +25,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "test": "vitest",
-    "test:run": "vitest --run"
+    "test:run": "vitest --run",
+    "test:coverage": "vitest --run --coverage"
   },
   "peerDependencies": {
     "react": "^17.0.0",
@@ -48,6 +49,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^12.1.5",
     "@types/react": "^17.0.83",
+    "@vitest/coverage-v8": "^2.1.8",
     "@types/react-dom": "^17.0.25",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",

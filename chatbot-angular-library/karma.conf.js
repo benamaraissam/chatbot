@@ -18,9 +18,13 @@ module.exports = function (config) {
     coverageReporter: {
       dir: require('path').join(__dirname, './coverage/chatbot-angular'),
       subdir: '.',
-      reporters: [{ type: 'html' }, { type: 'text-summary' }],
+      reporters: [
+        { type: 'html' },
+        { type: 'text-summary' },
+        { type: 'json-summary', file: 'coverage-summary.json' },
+      ],
     },
-    reporters: ['progress', 'kjhtml'],
+    reporters: ['progress', 'kjhtml', 'coverage'],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
